@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #0D0D0C;
+    --color-surface: #141413;
+    --color-surface-elevated: #181817;
+    --color-surface-subtle: #111110;
+    --color-text-primary: #F1EFE8;
+    --color-text-secondary: #A09E97;
+    --color-text-muted: #6F6D67;
+    --color-border: #292925;
+    --color-border-subtle: #1D1D1A;
+    --color-notebook-line: #171715;
+    --color-accent: #F06A3A;
+    --color-accent-pressed: #D9572D;
+    --color-success: #B7D96B;
+  }
+
+  body {
+    background-color: #070706;
+    color: #F1EFE8;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+  }
+}
+
+.font-display {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-hand {
+  font-family: 'Caveat', cursive;
+}
+
+/* Notebook background grid pattern */
+.notebook-grid {
+  background-color: #0D0D0C;
+  background-image: 
+    linear-gradient(to right, #171715 1px, transparent 1px),
+    linear-gradient(to bottom, #171715 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.notebook-grid-subtle {
+  background-color: #0D0D0C;
+  background-image: 
+    linear-gradient(to right, rgba(23, 23, 21, 0.75) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 21, 0.75) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #292925;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #383832;
+}

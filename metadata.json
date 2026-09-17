@@ -1,0 +1,6 @@
+{
+  "name": "Spawn Notebook Prototype",
+  "description": "A quiet digital dark notebook mobile prototype with orange signal language and hand-drawn cat illustrations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
