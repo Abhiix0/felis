@@ -14,7 +14,19 @@ import { Screen09EmptyStates } from './components/screens/Screen09EmptyStates';
 import { Screen10StatesGallery } from './components/screens/Screen10StatesGallery';
 import { ScreenRadar } from './components/screens/ScreenRadar';
 import { ScreenProfile } from './components/screens/ScreenProfile';
-import { Wifi, Battery, Smartphone, Maximize2, LayoutGrid } from 'lucide-react';
+import { ExpoExportModal } from './components/ui/ExpoExportModal';
+import {
+  Wifi,
+  Battery,
+  Smartphone,
+  Maximize2,
+  Download,
+  ChevronLeft,
+  Circle,
+  Square,
+  Signal,
+  BellRing,
+} from 'lucide-react';
 import { ScreenRoute } from './types';
 
 const WIREFRAME_SCREENS: { id: ScreenRoute; label: string; number: string }[] = [
@@ -36,14 +48,17 @@ const MainAppContent: React.FC = () => {
     activeTab,
     setActiveTab,
     navigateTo,
+    goBack,
     isRecommendationOpen,
     isShellDrawerOpen,
     openRecommendation,
+    openShellDrawer,
     closeShellDrawer,
   } = useApp();
 
   const [useDeviceFrame, setUseDeviceFrame] = useState(true);
-  const [showScreenSelector, setShowScreenSelector] = useState(true);
+  const [deviceType, setDeviceType] = useState<'android' | 'fluid'>('android');
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const renderActiveScreen = () => {
     switch (currentRoute) {
@@ -90,82 +105,98 @@ const MainAppContent: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-[#070706] text-[#F1EFE8] flex flex-col items-center justify-start antialiased selection:bg-[#F06A3A] selection:text-[#0D0D0C]">
       {/* Top Prototype Wireframe Navigation Bar */}
-      {showScreenSelector && (
-        <header className="w-full bg-[#111110]/95 backdrop-blur-md border-b border-[#1D1D1A] px-3 py-2 z-40 shrink-0">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#F06A3A] animate-pulse" />
-              <span className="font-mono text-xs font-semibold tracking-wider text-[#F1EFE8]">
-                SPAWN MOBILE PROTOYPE
-              </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#181817] text-[#A09E97] border border-[#292925]">
-                Wireframe Accuracy
-              </span>
-            </div>
-
-            {/* Quick Screen Picker */}
-            <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
-              {WIREFRAME_SCREENS.map((screen) => {
-                const isSelected =
-                  currentRoute === screen.id ||
-                  (screen.id === 'what_should_i_do' && isRecommendationOpen);
-
-                return (
-                  <button
-                    key={screen.id}
-                    onClick={() => {
-                      if (screen.id === 'what_should_i_do') {
-                        openRecommendation();
-                      } else {
-                        navigateTo(screen.id);
-                      }
-                    }}
-                    className={`px-2 py-1 rounded text-[11px] font-mono whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
-                      isSelected
-                        ? 'bg-[#F06A3A] text-[#0D0D0C] font-semibold'
-                        : 'bg-[#181817] text-[#A09E97] hover:text-[#F1EFE8] border border-[#292925]'
-                    }`}
-                  >
-                    <span className="opacity-75">{screen.number}</span>
-                    <span>{screen.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Controls */}
-            <div className="hidden md:flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setUseDeviceFrame(!useDeviceFrame)}
-                className="px-2 py-1 rounded bg-[#181817] hover:bg-[#20201E] border border-[#292925] text-xs font-mono text-[#A09E97] hover:text-[#F1EFE8] flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Toggle Mobile Bezel Frame"
-              >
-                {useDeviceFrame ? <Maximize2 size={13} /> : <Smartphone size={13} />}
-                <span>{useDeviceFrame ? 'Fluid' : 'Frame'}</span>
-              </button>
-            </div>
+      <header className="w-full bg-[#111110]/95 backdrop-blur-md border-b border-[#1D1D1A] px-3 py-2 z-40 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#F06A3A] animate-pulse" />
+            <span className="font-mono text-xs font-bold tracking-wider text-[#F1EFE8]">
+              SPAWN MOBILE
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#181817] text-[#A09E97] border border-[#292925]">
+              React Native + Expo
+            </span>
           </div>
-        </header>
-      )}
+
+          {/* Quick Screen Picker */}
+          <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 lg:pb-0 scrollbar-none">
+            {WIREFRAME_SCREENS.map((screen) => {
+              const isSelected =
+                currentRoute === screen.id ||
+                (screen.id === 'what_should_i_do' && isRecommendationOpen);
+
+              return (
+                <button
+                  key={screen.id}
+                  onClick={() => {
+                    if (screen.id === 'what_should_i_do') {
+                      openRecommendation();
+                    } else {
+                      navigateTo(screen.id);
+                    }
+                  }}
+                  className={`px-2 py-1 rounded text-[11px] font-mono whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-[#F06A3A] text-[#0D0D0C] font-semibold'
+                      : 'bg-[#181817] text-[#A09E97] hover:text-[#F1EFE8] border border-[#292925]'
+                  }`}
+                >
+                  <span className="opacity-75">{screen.number}</span>
+                  <span>{screen.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Actions: Android Emulator View & Code Download */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowExportModal(true)}
+              className="px-2.5 py-1 rounded bg-[#F06A3A]/15 hover:bg-[#F06A3A]/25 border border-[#F06A3A]/40 text-xs font-mono text-[#F06A3A] hover:text-[#F1EFE8] flex items-center gap-1.5 transition-colors cursor-pointer font-semibold shadow-xs"
+              title="Download & View Expo React Native Code"
+            >
+              <Download size={13} />
+              <span>Android / Expo Code (.zip)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDeviceType(deviceType === 'android' ? 'fluid' : 'android');
+                setUseDeviceFrame(deviceType !== 'android');
+              }}
+              className="px-2 py-1 rounded bg-[#181817] hover:bg-[#20201E] border border-[#292925] text-xs font-mono text-[#A09E97] hover:text-[#F1EFE8] flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Toggle Android Emulator vs Fluid View"
+            >
+              {deviceType === 'android' ? <Maximize2 size={13} /> : <Smartphone size={13} />}
+              <span>{deviceType === 'android' ? 'Pixel 8' : 'Fluid'}</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* Main Viewport Container */}
       <main className="w-full flex-1 flex items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden">
-        {useDeviceFrame ? (
-          /* Mobile Device Frame Mockup */
-          <div className="relative w-full max-w-[400px] h-[844px] max-h-[92vh] bg-[#000000] rounded-[44px] p-3 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_0_1px_#292925] flex flex-col overflow-hidden ring-1 ring-[#1D1D1A]">
-            {/* Phone Screen Outer Boundary */}
-            <div className="relative w-full h-full bg-[#0D0D0C] rounded-[36px] overflow-hidden flex flex-col border border-[#1D1D1A]">
-              {/* Dynamic Island / Status Bar */}
-              <div className="w-full h-11 px-7 flex items-center justify-between z-30 shrink-0 bg-[#0D0D0C] text-[#F1EFE8] font-mono text-xs select-none">
-                <span className="font-semibold text-xs tracking-tight">9:41</span>
-                
-                {/* Subtle camera punch / pill notch */}
-                <div className="w-24 h-4 bg-[#000000] rounded-full border border-[#181817] flex items-center justify-center" />
+        {deviceType === 'android' ? (
+          /* Google Pixel 8 / Android Device Frame */
+          <div className="relative w-full max-w-[395px] h-[830px] max-h-[92vh] bg-[#141413] rounded-[42px] p-2.5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_0_1px_#292925] flex flex-col overflow-hidden ring-2 ring-[#242421]">
+            {/* Phone Bezel */}
+            <div className="relative w-full h-full bg-[#0D0D0C] rounded-[34px] overflow-hidden flex flex-col border border-[#1D1D1A]">
+              {/* Android Status Bar with Camera Hole-Punch */}
+              <div className="w-full h-8 px-6 flex items-center justify-between z-30 shrink-0 bg-[#0D0D0C] text-[#F1EFE8] font-mono text-[11px] select-none">
+                <span className="font-semibold text-xs tracking-tight">09:41</span>
+
+                {/* Android Centered Hole-Punch Camera */}
+                <div className="w-3.5 h-3.5 bg-[#000000] rounded-full border border-[#222220] flex items-center justify-center shadow-inner" />
 
                 <div className="flex items-center gap-2 text-[#A09E97]">
-                  <Wifi size={13} />
-                  <Battery size={15} />
+                  <span className="text-[10px] font-bold text-[#F1EFE8]">5G</span>
+                  <Signal size={12} />
+                  <Wifi size={12} />
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-[9px] text-[#A09E97]">84%</span>
+                    <Battery size={13} className="text-[#F1EFE8]" />
+                  </div>
                 </div>
               </div>
 
@@ -200,9 +231,40 @@ const MainAppContent: React.FC = () => {
                 )}
               </NotebookBackground>
 
-              {/* iOS / Android Home Indicator Bar */}
-              <div className="w-full h-4 bg-[#0D0D0C] flex items-center justify-center shrink-0 z-30">
-                <div className="w-32 h-1 bg-[#292925] rounded-full" />
+              {/* Android 3-Button Navigation Bar with Working Navigation */}
+              <div className="w-full h-10 bg-[#0D0D0C] border-t border-[#1D1D1A] flex items-center justify-around px-8 shrink-0 z-30 select-none">
+                {/* Back Button (Physical Android Back) */}
+                <button
+                  type="button"
+                  onClick={goBack}
+                  title="Android Back"
+                  className="p-2 text-[#A09E97] hover:text-[#F06A3A] active:scale-90 transition-transform cursor-pointer"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                {/* Home Button */}
+                <button
+                  type="button"
+                  onClick={() => navigateTo('home')}
+                  title="Android Home"
+                  className="p-2 text-[#A09E97] hover:text-[#F06A3A] active:scale-90 transition-transform cursor-pointer"
+                >
+                  <Circle size={15} />
+                </button>
+
+                {/* Recents / App Switcher (Shell Drawer) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isShellDrawerOpen) closeShellDrawer();
+                    else openShellDrawer();
+                  }}
+                  title="Android Recents / Shell"
+                  className="p-2 text-[#A09E97] hover:text-[#F06A3A] active:scale-90 transition-transform cursor-pointer"
+                >
+                  <Square size={13} />
+                </button>
               </div>
             </div>
           </div>
@@ -244,6 +306,12 @@ const MainAppContent: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Expo Export Code & ZIP Download Modal */}
+      <ExpoExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+      />
     </div>
   );
 };

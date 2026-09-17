@@ -30,6 +30,7 @@ interface AppContextType {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   navigateTo: (route: ScreenRoute, params?: { projectId?: string; taskId?: string }) => void;
+  goBack: () => void;
   setActiveTab: (tab: MainTab) => void;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
@@ -58,12 +59,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [recommendation] = useState<Recommendation>(INITIAL_RECOMMENDATION);
   const [currentRoute, setCurrentRoute] = useState<ScreenRoute>('home');
+  const [routeHistory, setRouteHistory] = useState<ScreenRoute[]>(['home']);
   const [activeTab, setActiveTabState] = useState<MainTab>('home');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('proj-spawn');
   const [isRecommendationOpen, setIsRecommendationOpen] = useState(false);
   const [isShellDrawerOpen, setIsShellDrawerOpen] = useState(false);
   const [activeStateVariant, setActiveStateVariant] = useState<'loading' | 'error' | 'completed' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const playTimerChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.8);
+    } catch {
+      // Audio context might be restricted before user gesture
+    }
+  };
 
   const [focusSession, setFocusSession] = useState<FocusSessionState | null>({
     taskId: 'task-auth-tests',
@@ -90,6 +111,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setFocusSession((prev) => {
           if (!prev || !prev.isRunning) return prev;
           if (prev.remainingSeconds <= 1) {
+            playTimerChime();
             return {
               ...prev,
               remainingSeconds: 0,
@@ -116,6 +138,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (params?.taskId && route === 'focus_session') {
       startFocus(params.taskId);
     }
+    setRouteHistory((prev) => [...prev, route]);
     setCurrentRoute(route);
     if (route === 'home') setActiveTabState('home');
     else if (route === 'projects' || route === 'project_detail') setActiveTabState('projects');
@@ -125,6 +148,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Close any overlays on route change
     setIsShellDrawerOpen(false);
     setIsRecommendationOpen(false);
+  };
+
+  const goBack = () => {
+    if (isRecommendationOpen) {
+      setIsRecommendationOpen(false);
+      return;
+    }
+    if (isShellDrawerOpen) {
+      setIsShellDrawerOpen(false);
+      return;
+    }
+    if (routeHistory.length > 1) {
+      const nextHistory = [...routeHistory];
+      nextHistory.pop(); // remove current
+      const previousRoute = nextHistory[nextHistory.length - 1];
+      setRouteHistory(nextHistory);
+      setCurrentRoute(previousRoute);
+      if (previousRoute === 'home') setActiveTabState('home');
+      else if (previousRoute === 'projects' || previousRoute === 'project_detail') setActiveTabState('projects');
+      else if (previousRoute === 'radar') setActiveTabState('radar');
+      else if (previousRoute === 'profile') setActiveTabState('profile');
+    } else {
+      setCurrentRoute('home');
+      setActiveTabState('home');
+    }
   };
 
   const setActiveTab = (tab: MainTab) => {
@@ -286,6 +334,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         searchQuery,
         setSearchQuery,
         navigateTo,
+        goBack,
         setActiveTab,
         toggleTask,
         toggleSubtask,
