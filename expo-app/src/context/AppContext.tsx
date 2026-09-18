@@ -13,9 +13,6 @@ export const INITIAL_PROJECTS: Project[] = [
     iconType: 'terminal',
     description: 'Developer CLI',
     stack: ['Python', 'CLI', 'Backend'],
-    totalTasks: 5,
-    activeTasks: 1,
-    progressPercent: 80,
   },
   {
     id: 'proj-ucdp',
@@ -23,9 +20,6 @@ export const INITIAL_PROJECTS: Project[] = [
     iconType: 'database',
     description: 'Data Pipeline',
     stack: ['Go', 'Postgres', 'Kafka'],
-    totalTasks: 4,
-    activeTasks: 3,
-    progressPercent: 25,
   },
   {
     id: 'proj-preflight',
@@ -33,9 +27,6 @@ export const INITIAL_PROJECTS: Project[] = [
     iconType: 'cloud',
     description: 'Deployment checks',
     stack: ['TypeScript', 'Docker', 'AWS'],
-    totalTasks: 3,
-    activeTasks: 1,
-    progressPercent: 67,
   },
 ];
 
@@ -102,11 +93,11 @@ export const INITIAL_RECOMMENDATION: Recommendation = {
   reasonBullets: [
     'Due tomorrow',
     'High priority',
-    'Matches your ~30m focus window',
+    'Estimated 35 min',
   ],
 };
 
-interface FocusSessionState {
+export interface FocusSessionState {
   taskId: string;
   taskTitle: string;
   projectName: string;
@@ -116,7 +107,19 @@ interface FocusSessionState {
   isFinished: boolean;
   subtasks: { id: string; title: string; completed: boolean }[];
   estimatedMinutes: number;
-  actualMinutes: number;
+  startedAt: number;
+  pausedTotalSeconds: number;
+  pauseStartedAt?: number;
+}
+
+export function computeActualMinutes(session: FocusSessionState): number {
+  const elapsedMs = Date.now() - session.startedAt;
+  const elapsedSeconds = Math.floor(elapsedMs / 1000);
+  const currentPause = session.pauseStartedAt
+    ? Math.floor((Date.now() - session.pauseStartedAt) / 1000)
+    : 0;
+  const activeSeconds = Math.max(0, elapsedSeconds - (session.pausedTotalSeconds + currentPause));
+  return Math.max(1, Math.round(activeSeconds / 60));
 }
 
 interface AppContextType {
@@ -183,22 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [projects, tasks, isHydrated, isLoadingState, loadError]);
 
-  const [focusSession, setFocusSession] = useState<FocusSessionState | null>({
-    taskId: 'task-auth-tests',
-    taskTitle: 'Finish authentication tests',
-    projectName: 'Spawn',
-    totalSeconds: 27 * 60 + 42,
-    remainingSeconds: 27 * 60 + 42,
-    isRunning: true,
-    isFinished: false,
-    subtasks: [
-      { id: 'sub-1', title: 'Login tests', completed: false },
-      { id: 'sub-2', title: 'Token validation', completed: false },
-      { id: 'sub-3', title: 'Error cases', completed: false },
-    ],
-    estimatedMinutes: 35,
-    actualMinutes: 41,
-  });
+  const [focusSession, setFocusSession] = useState<FocusSessionState | null>(null);
 
   // Track background/foreground transitions to prevent timer drift on physical devices
   useEffect(() => {
@@ -341,45 +329,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       iconType: 'terminal',
       description,
       stack: ['TypeScript', 'Node.js'],
-      totalTasks: 0,
-      activeTasks: 0,
-      progressPercent: 0,
     };
     setProjects((prev) => [...prev, newProj]);
   };
 
   const startFocus = (taskId?: string) => {
     const target = tasks.find((t) => t.id === taskId) || tasks[0];
+    const estMin = target?.estimatedMinutes || 28;
     setFocusSession({
       taskId: target.id,
       taskTitle: target.title,
       projectName: target.projectName,
-      totalSeconds: (target.estimatedMinutes || 28) * 60,
-      remainingSeconds: (target.estimatedMinutes || 28) * 60,
+      totalSeconds: estMin * 60,
+      remainingSeconds: estMin * 60,
       isRunning: true,
       isFinished: false,
-      subtasks: target.subtasks || [
-        { id: 'sub-1', title: 'Login tests', completed: false },
-        { id: 'sub-2', title: 'Token validation', completed: false },
-        { id: 'sub-3', title: 'Error cases', completed: false },
-      ],
-      estimatedMinutes: target.estimatedMinutes || 35,
-      actualMinutes: 41,
+      subtasks: target.subtasks || [],
+      estimatedMinutes: estMin,
+      startedAt: Date.now(),
+      pausedTotalSeconds: 0,
     });
   };
 
   const pauseFocus = () => {
-    setFocusSession((prev) => (prev ? { ...prev, isRunning: false } : null));
+    setFocusSession((prev) =>
+      prev ? { ...prev, isRunning: false, pauseStartedAt: Date.now() } : null
+    );
   };
 
   const resumeFocus = () => {
-    setFocusSession((prev) => (prev ? { ...prev, isRunning: true } : null));
+    setFocusSession((prev) => {
+      if (!prev) return null;
+      const pauseDuration = prev.pauseStartedAt
+        ? Math.floor((Date.now() - prev.pauseStartedAt) / 1000)
+        : 0;
+      return {
+        ...prev,
+        isRunning: true,
+        pauseStartedAt: undefined,
+        pausedTotalSeconds: prev.pausedTotalSeconds + pauseDuration,
+      };
+    });
   };
 
   const finishFocus = () => {
     triggerHaptic('success');
     setFocusSession((prev) => {
       if (!prev) return null;
+      const actualMinutes = computeActualMinutes(prev);
+      console.log(`[Focus] Finished session for ${prev.taskTitle}: ${actualMinutes} actual minutes`);
       if (prev.taskId) {
         setTasks((currentTasks) =>
           currentTasks.map((t) => {
@@ -402,6 +400,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             remainingSeconds: prev.totalSeconds,
             isRunning: false,
             isFinished: false,
+            startedAt: Date.now(),
+            pausedTotalSeconds: 0,
+            pauseStartedAt: undefined,
           }
         : null
     );

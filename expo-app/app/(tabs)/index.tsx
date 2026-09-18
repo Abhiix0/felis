@@ -14,12 +14,16 @@ import { CatIllustration } from '../../src/components/CatIllustration';
 import { SignalRail } from '../../src/components/SignalRail';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
 import { Card, SectionLabel, PrimaryButton, EmptyState } from '../../src/components/ui';
+import { getTodayLabel } from '../../src/utils/dateUtils';
+import { getTodayTasks, getActiveTodayTasks } from '../../src/domain/taskSelectors';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { recommendation, tasks, toggleTask, startFocus } = useApp();
 
-  const todayTasks = tasks.slice(0, 4);
+  const rawTodayTasks = getTodayTasks(tasks);
+  const todayTasks = rawTodayTasks.length > 0 ? rawTodayTasks : tasks.filter((t) => !t.completed);
+  const activeTodayCount = getActiveTodayTasks(tasks).length;
   const completedCount = todayTasks.filter((t) => t.completed).length;
 
   return (
@@ -30,16 +34,17 @@ export default function HomeScreen() {
       >
         {/* Header date */}
         <View style={styles.dateRow}>
-          <Text style={styles.dateText}>THURSDAY, 17 SEPTEMBER</Text>
+          <Text style={styles.dateText}>{getTodayLabel()}</Text>
         </View>
 
         {/* Greeting & Cat */}
         <View style={styles.greetingRow}>
           <View style={styles.greetingTextContainer}>
             <Text style={styles.greetingLight}>Good morning,</Text>
-            <Text style={styles.greetingBold}>Abhi</Text>
+            {/* TODO: Replace with authenticated user display name (Phase 5) */}
+            <Text style={styles.greetingBold}>Developer</Text>
             <Text style={styles.greetingSub}>
-              You have {todayTasks.length} things to work on today.
+              You have {activeTodayCount} things to work on today.
             </Text>
           </View>
 

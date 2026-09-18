@@ -4,9 +4,6 @@ export interface Project {
   iconType: 'terminal' | 'database' | 'cloud' | 'file';
   description: string;
   stack: string[];
-  totalTasks: number;
-  activeTasks: number;
-  progressPercent: number;
 }
 
 export interface Task {

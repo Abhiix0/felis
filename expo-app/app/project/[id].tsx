@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Plus, Check, MoreVertical } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
+import { getProjectStats } from '../../src/domain/projectSelectors';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
 import { Card } from '../../src/components/ui';
@@ -23,6 +24,7 @@ export default function ProjectDetailScreen() {
 
   const project = projects.find((p) => p.id === id) || projects[0];
   const projectTasks = tasks.filter((t) => t.projectId === project?.id);
+  const stats = project ? getProjectStats(project.id, tasks) : { totalTasks: 0, activeTasks: 0, completedTasks: 0, progressPercent: 0 };
 
   if (!project) {
     return (
@@ -63,13 +65,13 @@ export default function ProjectDetailScreen() {
         <Card style={styles.progressCard}>
           <View style={styles.progressTop}>
             <Text style={styles.progressLabel}>PROGRESS</Text>
-            <Text style={styles.progressValue}>{project.progressPercent}%</Text>
+            <Text style={styles.progressValue}>{stats.progressPercent}%</Text>
           </View>
-          <ProgressBar percent={project.progressPercent} height={spacing[6]} />
+          <ProgressBar percent={stats.progressPercent} height={spacing[6]} />
           <View style={styles.statsRow}>
-            <Text style={styles.statsText}>{project.totalTasks} total</Text>
+            <Text style={styles.statsText}>{stats.totalTasks} total</Text>
             <Text style={styles.statsText}>·</Text>
-            <Text style={styles.statsText}>{project.activeTasks} active</Text>
+            <Text style={styles.statsText}>{stats.activeTasks} active</Text>
           </View>
         </Card>
 

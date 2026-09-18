@@ -11,13 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, Plus, Terminal, Database, Cloud, FileCode, MoreVertical, X } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
+import { getProjectStats } from '../../src/domain/projectSelectors';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
 import { Card, EmptyState } from '../../src/components/ui';
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  const { projects } = useApp();
+  const { projects, tasks } = useApp();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
 
@@ -85,39 +86,42 @@ export default function ProjectsScreen() {
           />
         ) : (
           <View style={styles.projectsList}>
-            {filtered.map((project) => (
-              <Card
-                key={project.id}
-                style={styles.projectCard}
-                onPress={() => router.push(`/project/${project.id}`)}
-                pressedStyle={{ borderColor: colors.borderSubtle, backgroundColor: colors.surfaceRaised }}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderLeft}>
-                    <View style={styles.iconWrapper}>
-                      {getIcon(project.iconType)}
+            {filtered.map((project) => {
+              const stats = getProjectStats(project.id, tasks);
+              return (
+                <Card
+                  key={project.id}
+                  style={styles.projectCard}
+                  onPress={() => router.push(`/project/${project.id}`)}
+                  pressedStyle={{ borderColor: colors.borderSubtle, backgroundColor: colors.surfaceRaised }}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={styles.cardHeaderLeft}>
+                      <View style={styles.iconWrapper}>
+                        {getIcon(project.iconType)}
+                      </View>
+                      <Text style={styles.projectName}>{project.name}</Text>
                     </View>
-                    <Text style={styles.projectName}>{project.name}</Text>
+                    <MoreVertical size={16} color={colors.textMuted} />
                   </View>
-                  <MoreVertical size={16} color={colors.textMuted} />
-                </View>
 
-                <Text style={styles.projectDesc}>{project.description}</Text>
+                  <Text style={styles.projectDesc}>{project.description}</Text>
 
-                <View style={styles.statsRow}>
-                  <Text style={styles.statsText}>{project.totalTasks} tasks</Text>
-                  <Text style={styles.statsDivider}>|</Text>
-                  <Text style={styles.statsActive}>{project.activeTasks} active</Text>
-                </View>
-
-                <View style={styles.progressRow}>
-                  <View style={styles.progressBarWrapper}>
-                    <ProgressBar percent={project.progressPercent} height={spacing[6]} />
+                  <View style={styles.statsRow}>
+                    <Text style={styles.statsText}>{stats.totalTasks} tasks</Text>
+                    <Text style={styles.statsDivider}>|</Text>
+                    <Text style={styles.statsActive}>{stats.activeTasks} active</Text>
                   </View>
-                  <Text style={styles.progressPercentText}>{project.progressPercent}%</Text>
-                </View>
-              </Card>
-            ))}
+
+                  <View style={styles.progressRow}>
+                    <View style={styles.progressBarWrapper}>
+                      <ProgressBar percent={stats.progressPercent} height={spacing[6]} />
+                    </View>
+                    <Text style={styles.progressPercentText}>{stats.progressPercent}%</Text>
+                  </View>
+                </Card>
+              );
+            })}
           </View>
         )}
       </ScrollView>

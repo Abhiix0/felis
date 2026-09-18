@@ -111,7 +111,7 @@ export function computeNextAction(tasks: Task[]): Recommendation | null {
 
   // Estimated focus window reason
   const estMin = best.estimatedMinutes ?? 30;
-  reasonBullets.push(`Matches your ~${estMin}m focus window`);
+  reasonBullets.push(`Estimated ${estMin} min`);
 
   return {
     taskId: best.id,

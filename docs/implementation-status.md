@@ -1,20 +1,20 @@
-﻿# FELIS Implementation Status
+# FELIS Implementation Status
 
 ## Phase 0 — Audit
 ✅ Mobile audit complete
 ✅ Backend & infrastructure audit complete
 
 ## Phase 1 — Bug Fixes (Engineer A)
-❌ project/task ID mismatch
-❌ demo focus state initialization
-❌ hardcoded user
-❌ hardcoded date
-❌ fake today calculation
-❌ hardcoded focus actualMinutes
-❌ fake subtasks in startFocus()
-❌ stale project metrics
-❌ misleading "AI" wording
-❌ stale documentation
+✅ project/task ID mismatch (Phase 1-A)
+✅ demo focus state initialization (Phase 1-C)
+✅ hardcoded user (Phase 1-D)
+✅ hardcoded date (Phase 1-D)
+✅ fake today calculation (Phase 1-D)
+✅ hardcoded focus actualMinutes (Phase 1-C)
+✅ fake subtasks in startFocus() (Phase 1-C)
+✅ stale project metrics (Phase 1-B)
+✅ misleading "AI" wording (Phase 1-D)
+✅ stale documentation (Phase 1-E)
 
 ## Phase 2 — Monorepo
 ❌ npm workspaces root (coordination point)

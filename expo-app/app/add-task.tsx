@@ -99,7 +99,7 @@ export default function AddTaskScreen() {
           autoFocus
         />
 
-        {/* AI Natural language tips / Parsed preview */}
+        {/* Natural language tips / Parsed preview */}
         {input.trim().length === 0 ? (
           <View style={styles.aiTip}>
             <Sparkles size={14} color={colors.accent} />
@@ -111,7 +111,7 @@ export default function AddTaskScreen() {
           <View style={styles.previewCard}>
             <View style={styles.previewHeader}>
               <Sparkles size={13} color={colors.accent} />
-              <Text style={styles.previewHeaderText}>AI understands it.</Text>
+              <Text style={styles.previewHeaderText}>FELIS parsed this.</Text>
             </View>
 
             {hasDetectedTags ? (

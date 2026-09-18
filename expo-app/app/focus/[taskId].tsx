@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Play, Pause, CheckCircle2, RotateCcw } from 'lucide-react-native';
-import { useApp } from '../../src/context/AppContext';
+import { useApp, computeActualMinutes } from '../../src/context/AppContext';
 import { FocusTimer } from '../../src/components/FocusTimer';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
@@ -39,7 +39,7 @@ export default function FocusSessionScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
         <CompletedState
           title="Nice. Done."
-          subtitle={focusSession.taskTitle}
+          subtitle={`${focusSession.taskTitle} · ${computeActualMinutes(focusSession)} min`}
           actionLabel="View details"
           onAction={() => {
             resetFocus();

@@ -1,64 +1,37 @@
-# FELIS Workspace
+# FELIS
 
-Welcome to the FELIS repository.
+> "I don't need to figure out what to do. It already figured that part out."
 
-> **IMPORTANT ARCHITECTURE NOTE**:
-> This repository contains two codebases. **`expo-app/` is the single source of truth for the FELIS mobile application.**
+FELIS is a context-aware personal execution OS for developers. Its core job is to help you
+capture work, understand your state, and always know the next best action.
 
----
+## North-Star Interaction
+"What should I do right now?"
 
-## 📁 Repository Structure
+## Architecture (Target)
+- apps/mobile — Expo React Native
+- apps/desktop — Vite + Tauri
+- packages/types — Shared domain models
+- packages/core — Recommendation engine, task parser, date utilities
+- packages/validation — Zod schemas
+- packages/api-client — Typed API client
+- packages/design-tokens — Colors, spacing, typography
+- backend/ — FastAPI + PostgreSQL
 
+## Current State
+The repository currently contains the working mobile prototype in expo-app/
+and a Vite design preview in the root directory.
+
+See docs/implementation-status.md for feature completion status.
+
+## Running the Mobile App
+```bash
+cd expo-app
+npm install
+npx expo start
 ```
-felis/
-├── expo-app/           # 📱 [PRIMARY PRODUCT] FELIS Mobile Application
-│   ├── app/            # Expo Router v4 file-based routes
-│   ├── src/            # Core React Native components, context, and types
-│   ├── app.json        # Expo app configuration (slug: "felis")
-│   └── package.json    # Mobile app dependencies and scripts
-│
-├── src/                # 🛠️ [DESIGN TOOL ONLY] Vite Web Preview & Export Tool
-├── index.html          # Web entry for the design preview tool
-├── vite.config.ts      # Vite configuration for design preview
-└── package.json        # Dependencies for the web design preview tool
-```
 
----
-
-## 📱 FELIS Mobile Application (`expo-app/`)
-
-The mobile application is a dark-themed developer personal OS built with:
-- **Framework**: [Expo SDK 52](https://expo.dev) with [Expo Router v4](https://docs.expo.dev/router/introduction/)
-- **Runtime**: React Native `0.76.6` (New Architecture enabled)
-- **Language**: TypeScript (strict mode)
-- **Styling & Icons**: Custom design system, Lucide React Native, and React Native SVG
-
-### Getting Started with the Mobile App
-
-1. Navigate to the mobile app directory:
-   ```bash
-   cd expo-app
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the Expo development server:
-   ```bash
-   npm start
-   # or
-   npx expo start
-   ```
-
-4. Run on platforms:
-   - **Android Emulator / Device**: `npm run android`
-   - **iOS Simulator**: `npm run ios`
-   - **Web preview**: `npm run web`
-
----
-
-## 🛠️ Web Design Preview Tool (`/`)
-
-The root directory contains a Vite + React web application used strictly as a **design preview and prototype export tool**. It is **not** part of the shipped mobile application product.
+## Documentation
+- docs/architecture.md — System architecture
+- docs/implementation-status.md — Feature status
+- docs/local-development.md — Full dev setup guide (coming in Phase 2)
