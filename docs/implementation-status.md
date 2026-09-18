@@ -1,7 +1,8 @@
-# FELIS Implementation Status
+﻿# FELIS Implementation Status
 
 ## Phase 0 — Audit
 ✅ Mobile audit complete
+✅ Backend & infrastructure audit complete
 
 ## Phase 1 — Bug Fixes
 ❌ project/task ID mismatch
@@ -18,13 +19,15 @@
 ## Phase 2 — Monorepo
 ❌ npm workspaces root
 ❌ apps/mobile (moved from expo-app/)
-❌ apps/desktop (scaffold)
+✅ apps/desktop (scaffold)
 ❌ packages/types
 ❌ packages/core
 ❌ packages/validation
 ❌ packages/api-client
 ❌ packages/design-tokens
-❌ backend/ scaffold
+✅ backend/ scaffold
+✅ CI pipeline (GitHub Actions)
+✅ docker-compose.yml
 
 ## Phase 3 — Shared Core
 ❌ packages/types domain models
