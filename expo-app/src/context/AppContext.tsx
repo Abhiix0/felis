@@ -206,6 +206,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setFocusSession((prev) => {
           if (!prev || !prev.isRunning) return prev;
           if (prev.remainingSeconds <= 1) {
+            if (prev.taskId) {
+              setTasks((currentTasks) =>
+                currentTasks.map((t) => {
+                  if (t.id === prev.taskId && !t.completed) {
+                    return { ...t, completed: true, completedAt: 'Just now' };
+                  }
+                  return t;
+                })
+              );
+            }
             return {
               ...prev,
               remainingSeconds: 0,
@@ -312,7 +322,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const finishFocus = () => {
-    setFocusSession((prev) => (prev ? { ...prev, isRunning: false, isFinished: true } : null));
+    setFocusSession((prev) => {
+      if (!prev) return null;
+      if (prev.taskId) {
+        setTasks((currentTasks) =>
+          currentTasks.map((t) => {
+            if (t.id === prev.taskId && !t.completed) {
+              return { ...t, completed: true, completedAt: 'Just now' };
+            }
+            return t;
+          })
+        );
+      }
+      return { ...prev, isRunning: false, isFinished: true };
+    });
   };
 
   const resetFocus = () => {
