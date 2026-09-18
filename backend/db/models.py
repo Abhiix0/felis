@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, JSON, Float, Index
 from sqlalchemy.dialects.postgresql import UUID
@@ -16,9 +16,9 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    profile = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    profile = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
+    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
 
 class Profile(Base):
     __tablename__ = 'profiles'
@@ -46,7 +46,7 @@ class Project(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="projects")
-    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan", lazy="selectin")
 
 class Task(Base):
     __tablename__ = 'tasks'
@@ -68,7 +68,7 @@ class Task(Base):
 
     user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
-    subtasks = relationship("Subtask", back_populates="task", cascade="all, delete-orphan", order_by="Subtask.position")
+    subtasks = relationship("Subtask", back_populates="task", cascade="all, delete-orphan", order_by="Subtask.position", lazy="selectin")
 
 class Subtask(Base):
     __tablename__ = 'subtasks'

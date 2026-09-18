@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DesktopAppProvider } from './context/DesktopAppContext';
 import { AppLayout } from './layout/AppLayout';

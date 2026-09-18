@@ -1,9 +1,11 @@
 ﻿from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
 class SubtaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     task_id: UUID
     title: str
@@ -11,14 +13,13 @@ class SubtaskResponse(BaseModel):
     completed_at: Optional[datetime]
     position: int
 
-    class Config:
-        from_attributes = True
-
 class TaskCreate(BaseModel):
+    id: Optional[UUID] = None
     project_id: Optional[UUID] = None
     title: str = Field(min_length=1, max_length=500)
     description: Optional[str] = None
     priority: str = "medium"
+    status: str = "pending"
     due_date: Optional[str] = None
     due_time: Optional[str] = None
     estimate_minutes: Optional[int] = None
@@ -35,6 +36,8 @@ class TaskUpdate(BaseModel):
     completed: Optional[bool] = None
 
 class TaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     user_id: UUID
     project_id: Optional[UUID]
@@ -49,6 +52,3 @@ class TaskResponse(BaseModel):
     updated_at: datetime
     completed_at: Optional[datetime]
     subtasks: List[SubtaskResponse] = Field(default_factory=list)
-
-    class Config:
-        from_attributes = True

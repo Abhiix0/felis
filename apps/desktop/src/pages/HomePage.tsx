@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { useNavigate } from 'react-router-dom';
-import { Play, Sparkles, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { Play, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const { recommendation, tasks, completeTask, startFocus } = useDesktopApp();

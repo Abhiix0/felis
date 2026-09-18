@@ -37,35 +37,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, displayName: string) => {
     setIsLoading(true);
-    let devUser: User = {
-      id: `dev-user-${Date.now()}`,
-      email,
-      displayName,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
     try {
-      // Attempt backend auth token
-      const res = await apiClient.post<{ access_token?: string; token?: string; user?: User }>(
+      const res = await apiClient.post<{ access_token?: string; token?: string; user_id?: string; user?: User }>(
         '/auth/token',
         { email, displayName }
       );
-      if (res?.access_token || res?.token) {
-        await storeToken(res.access_token || res.token || '');
+      const token = res?.access_token || res?.token;
+      if (!token) {
+        throw new Error('No access token returned from server');
       }
-      if (res?.user) {
-        devUser = res.user;
-      }
-    } catch (err) {
-      console.log('[Auth] Backend auth unavailable, using offline dev user session:', err);
-    }
+      await storeToken(token);
 
-    try {
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(devUser));
-      setUser(devUser);
+      const authenticatedUser: User = res?.user || {
+        id: res?.user_id || 'user-id',
+        email,
+        displayName,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authenticatedUser));
+      setUser(authenticatedUser);
     } catch (err) {
-      console.warn('[Auth] Failed to save user session', err);
+      console.warn('[Auth] Sign in failed:', err);
+      throw err;
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,5 @@
 ﻿from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -10,6 +10,7 @@ class ProjectStats(BaseModel):
     progressPercent: int = 0
 
 class ProjectCreate(BaseModel):
+    id: Optional[UUID] = None
     name: str = Field(min_length=1, max_length=100)
     goal: Optional[str] = None
     description: Optional[str] = None
@@ -25,6 +26,8 @@ class ProjectUpdate(BaseModel):
     status: Optional[str] = None
 
 class ProjectResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     user_id: UUID
     name: str
@@ -36,6 +39,3 @@ class ProjectResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     stats: Optional[ProjectStats] = None
-
-    class Config:
-        from_attributes = True

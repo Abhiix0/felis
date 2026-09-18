@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Check, X, Play, Pause } from 'lucide-react';
+import { Check, Play, Pause } from 'lucide-react';
 
 export const FocusPage: React.FC = () => {
   const { tasks, completeFocus, completeTask } = useDesktopApp();

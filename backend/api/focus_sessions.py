@@ -1,7 +1,7 @@
-﻿from uuid import UUID
+from uuid import UUID
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Header, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,6 +9,7 @@ from db.session import get_db
 from db.models import FocusSession as FocusSessionModel, SyncMutation as SyncMutationModel
 from auth.dependencies import get_current_user
 from auth.adapter import AuthenticatedUser
+from domain.activity_service import record_activity
 from app.errors import NotFoundError
 
 router = APIRouter(prefix="/focus-sessions", tags=["focus-sessions"])
@@ -23,6 +24,8 @@ class FocusSessionEnd(BaseModel):
     status: str = "finished"
 
 class FocusSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     user_id: UUID
     task_id: UUID
@@ -32,9 +35,6 @@ class FocusSessionResponse(BaseModel):
     actual_minutes: Optional[int] = None
     status: str
     paused_total_seconds: int
-
-    class Config:
-        from_attributes = True
 
 @router.post("", response_model=FocusSessionResponse, status_code=status.HTTP_201_CREATED)
 async def start_focus_session(
@@ -47,13 +47,21 @@ async def start_focus_session(
     if x_client_mutation_id:
         try:
             m_uuid = UUID(x_client_mutation_id)
-            stmt = select(SyncMutationModel).where(SyncMutationModel.id == m_uuid)
+            stmt = select(SyncMutationModel).where(
+                SyncMutationModel.id == m_uuid,
+                SyncMutationModel.user_id == current_user.id
+            )
             res = await db.execute(stmt)
             existing_mutation = res.scalar_one_or_none()
             if existing_mutation and existing_mutation.payload:
                 session_id = existing_mutation.payload.get("session_id")
                 if session_id:
-                    session_res = await db.execute(select(FocusSessionModel).where(FocusSessionModel.id == UUID(session_id)))
+                    session_res = await db.execute(
+                        select(FocusSessionModel).where(
+                            FocusSessionModel.id == UUID(session_id),
+                            FocusSessionModel.user_id == current_user.id
+                        )
+                    )
                     existing_session = session_res.scalar_one_or_none()
                     if existing_session:
                         return FocusSessionResponse.model_validate(existing_session)
@@ -83,6 +91,15 @@ async def start_focus_session(
             await db.commit()
         except Exception:
             pass
+
+    await record_activity(
+        db,
+        current_user.id,
+        "FOCUS_STARTED",
+        session.id,
+        "focus_session",
+        {"task_id": str(session.task_id), "planned_minutes": session.planned_minutes},
+    )
 
     return FocusSessionResponse.model_validate(session)
 
@@ -114,4 +131,14 @@ async def end_focus_session(
 
     await db.commit()
     await db.refresh(session)
+
+    await record_activity(
+        db,
+        current_user.id,
+        "FOCUS_ENDED",
+        session.id,
+        "focus_session",
+        {"task_id": str(session.task_id), "actual_minutes": session.actual_minutes, "status": session.status},
+    )
+
     return FocusSessionResponse.model_validate(session)

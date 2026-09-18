@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, FolderKanban, CheckSquare, Radio, Sparkles, Plus } from 'lucide-react';
+import { Home, FolderKanban, CheckSquare, Radio, Plus } from 'lucide-react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { CommandKModal } from '../components/CommandKModal';
 

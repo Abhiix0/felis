@@ -1,4 +1,4 @@
-﻿from uuid import UUID
+from uuid import UUID
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
@@ -67,6 +67,8 @@ async def get_next_action(
     rec_data["id"] = str(rec_record.id)
     return RecommendationResponse(**rec_data)
 
+from domain.activity_service import record_activity
+
 @router.post("/{id}/outcome", status_code=status.HTTP_200_OK)
 async def record_outcome(
     id: UUID,
@@ -83,4 +85,14 @@ async def record_outcome(
     )
     db.add(outcome)
     await db.commit()
+
+    await record_activity(
+        db,
+        current_user.id,
+        f"RECOMMENDATION_{data.event.upper()}",
+        id,
+        "recommendation",
+        {"event": data.event, "corrected_task_id": str(data.corrected_task_id) if data.corrected_task_id else None},
+    )
+
     return {"status": "ok"}

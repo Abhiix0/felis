@@ -239,16 +239,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (!prev || !prev.isRunning || prev.isFinished) return prev;
             const newRemaining = Math.max(0, prev.remainingSeconds - elapsed);
             if (newRemaining <= 0) {
-              if (prev.taskId) {
-                setTasks((currentTasks) =>
-                  currentTasks.map((t) => {
-                    if (t.id === prev.taskId && !t.completed) {
-                      return { ...t, completed: true, completedAt: 'Just now' };
-                    }
-                    return t;
-                  })
-                );
-              }
               triggerHaptic('success');
               return {
                 ...prev,
@@ -279,16 +269,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setFocusSession((prev) => {
           if (!prev || !prev.isRunning) return prev;
           if (prev.remainingSeconds <= 1) {
-            if (prev.taskId) {
-              setTasks((currentTasks) =>
-                currentTasks.map((t) => {
-                  if (t.id === prev.taskId && !t.completed) {
-                    return { ...t, completed: true, completedAt: 'Just now' };
-                  }
-                  return t;
-                })
-              );
-            }
             triggerHaptic('success');
             return {
               ...prev,

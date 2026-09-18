@@ -1,4 +1,4 @@
-﻿from uuid import UUID
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
 from db.models import Project as ProjectModel, Task as TaskModel
@@ -22,7 +22,10 @@ class ProjectRepository:
         return result.scalar_one_or_none()
 
     async def create(self, user_id: UUID, data: dict) -> ProjectModel:
-        project = ProjectModel(user_id=user_id, **data)
+        clean_data = {k: v for k, v in data.items() if v is not None or k != "id"}
+        if clean_data.get("id") is None:
+            clean_data.pop("id", None)
+        project = ProjectModel(user_id=user_id, **clean_data)
         self.db.add(project)
         await self.db.commit()
         await self.db.refresh(project)

@@ -7,9 +7,17 @@
     "dev": "vite --port 5173",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "test": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@felis/api-client": "*",
+    "@felis/core": "*",
+    "@felis/design-tokens": "*",
+    "@felis/types": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.22.0",

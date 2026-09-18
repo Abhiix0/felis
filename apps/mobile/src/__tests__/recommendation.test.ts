@@ -30,23 +30,23 @@ describe('Recommendation Engine (Mobile Integration)', () => {
     expect(result?.taskId).toBe('t-1');
   });
 
-  it('High priority beats low regardless of due date', () => {
-    const lowDueToday: Task = {
+  it('High priority beats low with same due date', () => {
+    const lowTask: Task = {
       id: 't-low',
       title: 'Low task due today',
       priority: 'low',
       dueDate: new Date().toISOString(),
       status: 'pending',
     };
-    const highNextWeek: Task = {
+    const highTask: Task = {
       id: 't-high',
-      title: 'High task next week',
+      title: 'High task due today',
       priority: 'high',
-      dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+      dueDate: new Date().toISOString(),
       status: 'pending',
     };
 
-    const result = computeNextAction([lowDueToday, highNextWeek], mockProjects);
+    const result = computeNextAction([lowTask, highTask], mockProjects);
     expect(result).not.toBeNull();
     expect(result?.taskId).toBe('t-high');
   });

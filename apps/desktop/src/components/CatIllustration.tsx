@@ -1,5 +1,6 @@
 import React from 'react';
-import { CatPose } from '../../types';
+
+export type CatPose = 'idle' | 'recommendation' | 'empty' | 'focus' | 'completed' | 'loading' | 'error' | 'peek' | 'purr';
 
 interface CatIllustrationProps {
   pose?: CatPose;

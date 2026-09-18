@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
-import { X, CornerDownLeft } from 'lucide-react';
+import { parseQuickAddInput } from '@felis/core';
+import { X, CornerDownLeft, Sparkles } from 'lucide-react';
 
 export const CommandKModal: React.FC = () => {
   const { isCommandKOpen, setIsCommandKOpen, createTask, projects } = useDesktopApp();
@@ -8,14 +9,25 @@ export const CommandKModal: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
+  const parsed = useMemo(() => {
+    return parseQuickAddInput(input, projects);
+  }, [input, projects]);
+
   if (!isCommandKOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    const finalTitle = parsed.title || input.trim();
+    if (!finalTitle) return;
 
-    await createTask(input.trim(), selectedProjectId || undefined, priority);
+    const finalProjectId = parsed.projectId || selectedProjectId || undefined;
+    const finalPriority = parsed.priority || priority;
+    const finalEstimate = parsed.estimateMinutes || parsed.estimatedMinutes;
+    const finalDue = parsed.dueDate || parsed.dueLabel;
+
+    await createTask(finalTitle, finalProjectId, finalPriority, finalDue, finalEstimate);
     setInput('');
+    setSelectedProjectId('');
     setIsCommandKOpen(false);
   };
 
@@ -46,7 +58,8 @@ export const CommandKModal: React.FC = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 13, color: '#A09E97', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: 13, color: '#A09E97', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Sparkles size={14} color="#F06A3A" />
             QUICK ADD TASK <span style={{ color: '#F06A3A' }}>(Ctrl+K)</span>
           </div>
           <button
@@ -61,7 +74,7 @@ export const CommandKModal: React.FC = () => {
           <input
             type="text"
             autoFocus
-            placeholder="e.g. Implement login endpoint !high 45m"
+            placeholder="e.g. Implement login endpoint !high 45m tomorrow #felis"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             style={{
@@ -79,9 +92,19 @@ export const CommandKModal: React.FC = () => {
             }}
           />
 
+          {/* Parsed Preview Badges */}
+          {(parsed.title || parsed.projectName || parsed.priority || parsed.dueLabel || parsed.estimateMinutes) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, padding: '8px 10px', backgroundColor: '#1C1B18', borderRadius: 6, fontSize: 11, color: '#A09E97' }}>
+              {parsed.projectName && <span style={{ color: '#F06A3A', backgroundColor: 'rgba(240,106,58,0.15)', padding: '2px 6px', borderRadius: 4 }}>#{parsed.projectName}</span>}
+              {parsed.priority && <span style={{ color: parsed.priority === 'high' ? '#F06A3A' : '#F59E0B', backgroundColor: 'rgba(245,158,11,0.15)', padding: '2px 6px', borderRadius: 4 }}>!{parsed.priority}</span>}
+              {parsed.dueLabel && <span style={{ color: '#38BDF8', backgroundColor: 'rgba(56,189,248,0.15)', padding: '2px 6px', borderRadius: 4 }}>📅 {parsed.dueLabel}</span>}
+              {parsed.estimateMinutes && <span style={{ color: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.15)', padding: '2px 6px', borderRadius: 4 }}>⏱ {parsed.estimateMinutes}m</span>}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <select
-              value={selectedProjectId}
+              value={parsed.projectId || selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
               style={{
                 flex: 1,
@@ -103,14 +126,14 @@ export const CommandKModal: React.FC = () => {
             </select>
 
             <select
-              value={priority}
+              value={parsed.priority || priority}
               onChange={(e) => setPriority(e.target.value as any)}
               style={{
                 backgroundColor: '#181817',
                 border: '1px solid #292925',
                 borderRadius: 6,
                 padding: '8px 10px',
-                color: priority === 'high' ? '#F06A3A' : priority === 'medium' ? '#F59E0B' : '#A09E97',
+                color: (parsed.priority || priority) === 'high' ? '#F06A3A' : (parsed.priority || priority) === 'medium' ? '#F59E0B' : '#A09E97',
                 fontSize: 12,
                 outline: 'none',
               }}

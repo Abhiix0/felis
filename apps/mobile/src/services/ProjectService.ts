@@ -1,5 +1,6 @@
 import { LocalProjectRepository } from '../storage/LocalProjectRepository';
 import { SyncQueue } from '../storage/SyncQueue';
+import { v4 as uuidv4 } from 'uuid';
 import type { Project } from '@felis/types';
 import type { CreateProjectInput } from '@felis/validation';
 
@@ -15,7 +16,7 @@ export class ProjectService {
 
   async create(input: CreateProjectInput): Promise<Project> {
     const project: Project = {
-      id: `local-proj-${Date.now()}`,
+      id: uuidv4(),
       userId: 'local',
       name: input.name,
       goal: input.goal,

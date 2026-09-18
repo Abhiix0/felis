@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Folder, CheckSquare } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export const ProjectsPage: React.FC = () => {
   const { projects, tasks, createProject, completeTask, setIsCommandKOpen } = useDesktopApp();

@@ -1,4 +1,4 @@
-﻿from uuid import UUID
+from uuid import UUID
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Header, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from db.models import SyncMutation as SyncMutationModel
 from auth.dependencies import get_current_user
 from auth.adapter import AuthenticatedUser
 from domain.task_service import TaskCreate, TaskUpdate, TaskResponse
+from domain.activity_service import record_activity
 from app.errors import NotFoundError
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -36,7 +37,10 @@ async def create_task(
     if x_client_mutation_id:
         try:
             m_uuid = UUID(x_client_mutation_id)
-            stmt = select(SyncMutationModel).where(SyncMutationModel.id == m_uuid)
+            stmt = select(SyncMutationModel).where(
+                SyncMutationModel.id == m_uuid,
+                SyncMutationModel.user_id == current_user.id
+            )
             res = await db.execute(stmt)
             existing_mutation = res.scalar_one_or_none()
             if existing_mutation and existing_mutation.payload:
@@ -66,6 +70,15 @@ async def create_task(
         except Exception:
             pass
 
+    await record_activity(
+        db,
+        current_user.id,
+        "TASK_CREATED",
+        task.id,
+        "task",
+        {"title": task.title, "priority": task.priority},
+    )
+
     return TaskResponse.model_validate(task)
 
 @router.get("/{id}", response_model=TaskResponse)
@@ -92,6 +105,14 @@ async def update_task(
     if not task:
         raise NotFoundError("Task")
     updated = await task_repo.update(task, data.model_dump(exclude_unset=True))
+    await record_activity(
+        db,
+        current_user.id,
+        "TASK_UPDATED",
+        task.id,
+        "task",
+        {"title": updated.title, "status": updated.status},
+    )
     return TaskResponse.model_validate(updated)
 
 @router.post("/{id}/complete", response_model=TaskResponse)
@@ -106,6 +127,14 @@ async def complete_task(
         raise NotFoundError("Task")
     now = datetime.now(timezone.utc)
     updated = await task_repo.update(task, {"status": "completed", "completed_at": now})
+    await record_activity(
+        db,
+        current_user.id,
+        "TASK_COMPLETED",
+        task.id,
+        "task",
+        {"title": updated.title},
+    )
     return TaskResponse.model_validate(updated)
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -118,4 +147,12 @@ async def delete_task(
     task = await task_repo.get_by_id(id, current_user.id)
     if not task:
         raise NotFoundError("Task")
+    await record_activity(
+        db,
+        current_user.id,
+        "TASK_DELETED",
+        task.id,
+        "task",
+        {"title": task.title},
+    )
     await task_repo.delete(task)

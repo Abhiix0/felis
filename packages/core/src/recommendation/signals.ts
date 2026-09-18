@@ -24,11 +24,11 @@ export function scoreUrgency(task: Task, ctx: ScoringContext): number {
 export function scorePriority(task: Task): number {
   switch (task.priority) {
     case 'high':
-      return SCORING_WEIGHTS.priority * 1.5;
+      return SCORING_WEIGHTS.priority;
     case 'medium':
       return SCORING_WEIGHTS.priority * 0.6;
     case 'low':
-      return SCORING_WEIGHTS.priority * 0.1;
+      return SCORING_WEIGHTS.priority * 0.2;
     default:
       return SCORING_WEIGHTS.priority * 0.4;
   }

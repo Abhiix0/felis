@@ -1,12 +1,15 @@
-﻿from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from uuid import UUID
+from fastapi import APIRouter, Depends, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from db.session import get_db
+from db.models import SyncMutation as SyncMutationModel
 from db.repositories.project import ProjectRepository
 from db.repositories.task import TaskRepository
 from auth.dependencies import get_current_user
 from auth.adapter import AuthenticatedUser
 from domain.project_service import ProjectCreate, ProjectUpdate, ProjectResponse, ProjectStats
+from domain.activity_service import record_activity
 from app.errors import NotFoundError
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -45,11 +48,58 @@ async def list_projects(
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     data: ProjectCreate,
+    x_client_mutation_id: str | None = Header(None, alias="X-Client-Mutation-ID"),
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Idempotency check
+    if x_client_mutation_id:
+        try:
+            m_uuid = UUID(x_client_mutation_id)
+            stmt = select(SyncMutationModel).where(
+                SyncMutationModel.id == m_uuid,
+                SyncMutationModel.user_id == current_user.id
+            )
+            res = await db.execute(stmt)
+            existing_mutation = res.scalar_one_or_none()
+            if existing_mutation and existing_mutation.payload:
+                project_id_str = existing_mutation.payload.get("project_id")
+                if project_id_str:
+                    project_repo = ProjectRepository(db)
+                    existing_project = await project_repo.get_by_id(UUID(project_id_str), current_user.id)
+                    if existing_project:
+                        resp = ProjectResponse.model_validate(existing_project)
+                        resp.stats = ProjectStats()
+                        return resp
+        except ValueError:
+            pass
+
     project_repo = ProjectRepository(db)
     project = await project_repo.create(current_user.id, data.model_dump())
+
+    if x_client_mutation_id:
+        try:
+            mutation = SyncMutationModel(
+                id=UUID(x_client_mutation_id),
+                user_id=current_user.id,
+                type="CREATE_PROJECT",
+                payload={"project_id": str(project.id)},
+                status="completed",
+            )
+            db.add(mutation)
+            await db.commit()
+        except Exception:
+            pass
+
+    await record_activity(
+        db,
+        current_user.id,
+        "PROJECT_CREATED",
+        project.id,
+        "project",
+        {"name": project.name},
+    )
+
     resp = ProjectResponse.model_validate(project)
     resp.stats = ProjectStats()
     return resp
@@ -82,6 +132,14 @@ async def update_project(
     if not project:
         raise NotFoundError("Project")
     updated = await project_repo.update(project, data.model_dump(exclude_unset=True))
+    await record_activity(
+        db,
+        current_user.id,
+        "PROJECT_UPDATED",
+        project.id,
+        "project",
+        {"name": updated.name},
+    )
     resp = ProjectResponse.model_validate(updated)
     return resp
 
@@ -95,4 +153,12 @@ async def delete_project(
     project = await project_repo.get_by_id(id, current_user.id)
     if not project:
         raise NotFoundError("Project")
+    await record_activity(
+        db,
+        current_user.id,
+        "PROJECT_DELETED",
+        project.id,
+        "project",
+        {"name": project.name},
+    )
     await project_repo.delete(project)

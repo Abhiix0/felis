@@ -1,5 +1,6 @@
 import { LocalTaskRepository } from '../storage/LocalTaskRepository';
 import { SyncQueue } from '../storage/SyncQueue';
+import { v4 as uuidv4 } from 'uuid';
 import type { Task, Project } from '@felis/types';
 import type { CreateTaskInput, UpdateTaskInput } from '@felis/validation';
 
@@ -22,7 +23,7 @@ export class TaskService {
       ? projects.find((p) => p.id === input.projectId)
       : undefined;
     const task: Task = {
-      id: `local-task-${Date.now()}`,
+      id: uuidv4(),
       userId: 'local',
       projectId: project?.id || input.projectId,
       projectName: project?.name,

@@ -1,5 +1,6 @@
 ﻿from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 
 class ErrorDetail(BaseModel):
@@ -29,6 +30,10 @@ class UnauthorizedError(FelisException):
     def __init__(self, message: str = "Invalid or expired token."):
         super().__init__("UNAUTHORIZED", message, status.HTTP_401_UNAUTHORIZED)
 
+class ValidationError(FelisException):
+    def __init__(self, message: str = "Invalid request payload."):
+        super().__init__("VALIDATION_ERROR", message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
 async def felis_exception_handler(request: Request, exc: FelisException) -> JSONResponse:
     request_id = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
@@ -37,6 +42,21 @@ async def felis_exception_handler(request: Request, exc: FelisException) -> JSON
             "error": {
                 "code": exc.code,
                 "message": exc.message,
+                "request_id": request_id,
+            }
+        },
+    )
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", "unknown")
+    first_error = exc.errors()[0] if exc.errors() else {"msg": "Validation failed"}
+    msg = f"{first_error.get('loc', ['body'])[-1]}: {first_error.get('msg', 'invalid')}"
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": msg,
                 "request_id": request_id,
             }
         },
