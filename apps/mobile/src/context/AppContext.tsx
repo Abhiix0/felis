@@ -161,7 +161,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     () => new SyncManager(apiClient, localProjectRepo, localTaskRepo, localFocusRepo),
     [localProjectRepo, localTaskRepo, localFocusRepo]
   );
-  const { syncStatus, triggerSync } = useSyncManager(syncManager);
+  const { syncStatus, triggerSync } = useSyncManager(syncManager, userId);
 
   const fetchRecommendation = useCallback(async () => {
     setIsLoadingRecommendation(true);

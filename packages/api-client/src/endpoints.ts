@@ -25,7 +25,7 @@ export class ProjectsApi {
     return Array.isArray(raw) ? raw.map(mapProjectFromApi) : [];
   }
 
-  async create(input: CreateProjectInput, mutationId?: string): Promise<Project> {
+  async create(input: CreateProjectInput | any, mutationId?: string): Promise<Project> {
     const body = mapProjectToApi(input);
     const raw = await this.client.post<any>('/projects', body, mutationId);
     return mapProjectFromApi(raw);
@@ -36,14 +36,14 @@ export class ProjectsApi {
     return mapProjectFromApi(raw);
   }
 
-  async update(id: string, input: UpdateProjectInput): Promise<Project> {
+  async update(id: string, input: UpdateProjectInput | any, mutationId?: string): Promise<Project> {
     const body = mapProjectToApi(input);
-    const raw = await this.client.patch<any>(`/projects/${id}`, body);
+    const raw = await this.client.patch<any>(`/projects/${id}`, body, mutationId);
     return mapProjectFromApi(raw);
   }
 
-  async delete(id: string): Promise<void> {
-    return this.client.delete<void>(`/projects/${id}`);
+  async delete(id: string, mutationId?: string): Promise<void> {
+    return this.client.delete<void>(`/projects/${id}`, mutationId);
   }
 }
 
@@ -59,7 +59,7 @@ export class TasksApi {
     return Array.isArray(raw) ? raw.map(mapTaskFromApi) : [];
   }
 
-  async create(input: CreateTaskInput, mutationId?: string): Promise<Task> {
+  async create(input: CreateTaskInput | any, mutationId?: string): Promise<Task> {
     const body = mapTaskToApi(input);
     const raw = await this.client.post<any>('/tasks', body, mutationId);
     return mapTaskFromApi(raw);
@@ -70,9 +70,9 @@ export class TasksApi {
     return mapTaskFromApi(raw);
   }
 
-  async update(id: string, input: UpdateTaskInput): Promise<Task> {
+  async update(id: string, input: UpdateTaskInput | any, mutationId?: string): Promise<Task> {
     const body = mapTaskToApi(input);
-    const raw = await this.client.patch<any>(`/tasks/${id}`, body);
+    const raw = await this.client.patch<any>(`/tasks/${id}`, body, mutationId);
     return mapTaskFromApi(raw);
   }
 
@@ -81,8 +81,8 @@ export class TasksApi {
     return mapTaskFromApi(raw);
   }
 
-  async delete(id: string): Promise<void> {
-    return this.client.delete<void>(`/tasks/${id}`);
+  async delete(id: string, mutationId?: string): Promise<void> {
+    return this.client.delete<void>(`/tasks/${id}`, mutationId);
   }
 }
 
@@ -110,10 +110,17 @@ export class RecommendationsApi {
 export class FocusApi {
   constructor(private client: FelisApiClient) {}
 
-  async start(taskId: string, plannedMinutes: number, mutationId?: string): Promise<FocusSession> {
+  async start(
+    taskId: string,
+    plannedMinutes: number,
+    id?: string,
+    mutationId?: string
+  ): Promise<FocusSession> {
+    const body: Record<string, any> = { taskId, plannedMinutes };
+    if (id) body.id = id;
     const raw = await this.client.post<any>(
       '/focus-sessions',
-      { taskId, plannedMinutes },
+      body,
       mutationId
     );
     return mapFocusSessionFromApi(raw);
@@ -123,13 +130,18 @@ export class FocusApi {
     id: string,
     endedAt: string,
     actualMinutes: number,
-    status: 'finished' | 'abandoned'
+    status: 'finished' | 'abandoned' | 'completed' = 'finished',
+    mutationId?: string
   ): Promise<FocusSession> {
-    const raw = await this.client.patch<any>(`/focus-sessions/${id}`, {
-      endedAt,
-      actualMinutes,
-      status,
-    });
+    const raw = await this.client.patch<any>(
+      `/focus-sessions/${id}`,
+      {
+        endedAt,
+        actualMinutes,
+        status,
+      },
+      mutationId
+    );
     return mapFocusSessionFromApi(raw);
   }
 }

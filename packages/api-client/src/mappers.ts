@@ -33,13 +33,16 @@ export function mapProjectFromApi(raw: any): Project {
   };
 }
 
-export function mapProjectToApi(input: CreateProjectInput | UpdateProjectInput): any {
+export function mapProjectToApi(input: CreateProjectInput | UpdateProjectInput | Partial<Project>): any {
   const result: any = {};
+  if ('id' in input && input.id !== undefined) result.id = input.id;
   if ('name' in input && input.name !== undefined) result.name = input.name;
   if ('goal' in input && input.goal !== undefined) result.goal = input.goal;
   if ('description' in input && input.description !== undefined) result.description = input.description;
   if ('techStack' in input && input.techStack !== undefined) result.tech_stack = input.techStack;
+  if ('tech_stack' in (input as any) && (input as any).tech_stack !== undefined) result.tech_stack = (input as any).tech_stack;
   if ('iconType' in input && input.iconType !== undefined) result.icon_type = input.iconType;
+  if ('icon_type' in (input as any) && (input as any).icon_type !== undefined) result.icon_type = (input as any).icon_type;
   if ('status' in input && (input as any).status !== undefined) result.status = (input as any).status;
   return result;
 }

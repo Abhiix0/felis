@@ -1,55 +1,69 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import { SyncManager } from './SyncManager';
 
-export function useSyncManager(syncManager: SyncManager) {
+export function useSyncManager(syncManager: SyncManager, userId?: string) {
   const [syncStatus, setSyncStatus] = useState<'synced' | 'pending' | 'failed'>('synced');
   const syncManagerRef = useRef(syncManager);
   syncManagerRef.current = syncManager;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   const triggerSync = useCallback(async () => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId || currentUserId === 'local') {
+      setSyncStatus('synced');
+      return;
+    }
     try {
-      await syncManagerRef.current.sync();
+      await syncManagerRef.current.sync(currentUserId);
     } catch (err) {
       console.warn('[useSyncManager] Sync run caught error:', err);
     } finally {
-      const status = await syncManagerRef.current.getSyncStatus();
+      const status = await syncManagerRef.current.getSyncStatus(currentUserId);
       setSyncStatus(status);
     }
   }, []);
 
   useEffect(() => {
-    syncManagerRef.current.getSyncStatus().then(setSyncStatus);
+    if (userId && userId !== 'local') {
+      syncManagerRef.current.getSyncStatus(userId).then(setSyncStatus);
+    } else {
+      setSyncStatus('synced');
+    }
 
-    const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+    const appStateSub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         triggerSync();
       }
     });
 
-    let removeOnlineListener: (() => void) | undefined;
-    if (typeof window !== 'undefined' && window.addEventListener) {
-      const handleOnline = () => {
-        triggerSync();
-      };
-      window.addEventListener('online', handleOnline);
-      removeOnlineListener = () => window.removeEventListener('online', handleOnline);
-    }
+    const unsubscribeNetInfo = NetInfo?.addEventListener
+      ? NetInfo.addEventListener((state: any) => {
+          if (state?.isConnected && state?.isInternetReachable !== false) {
+            triggerSync();
+          }
+        })
+      : () => {};
 
     const interval = setInterval(() => {
       triggerSync();
-    }, 15000);
+    }, 30000);
 
     return () => {
-      subscription.remove();
-      if (removeOnlineListener) removeOnlineListener();
+      appStateSub.remove();
+      if (typeof unsubscribeNetInfo === 'function') {
+        unsubscribeNetInfo();
+      }
       clearInterval(interval);
     };
-  }, [triggerSync]);
+  }, [triggerSync, userId]);
 
   return {
     syncStatus,
     triggerSync,
   };
 }
+
 
