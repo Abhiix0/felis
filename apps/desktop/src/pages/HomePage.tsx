@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { useNavigate } from 'react-router-dom';
 import { Play, Sparkles, CheckCircle2, Clock, ArrowRight } from 'lucide-react';

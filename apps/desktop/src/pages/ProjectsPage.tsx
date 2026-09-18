@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, Folder, CheckSquare } from 'lucide-react';

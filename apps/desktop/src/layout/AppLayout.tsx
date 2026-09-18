@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Home, FolderKanban, CheckSquare, Radio, Sparkles, Plus } from 'lucide-react';
 import { useDesktopApp } from '../context/DesktopAppContext';

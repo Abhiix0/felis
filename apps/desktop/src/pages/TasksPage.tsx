@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { CheckCircle2, Circle } from 'lucide-react';
 

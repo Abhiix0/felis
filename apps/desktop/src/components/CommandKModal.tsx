@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useDesktopApp } from '../context/DesktopAppContext';
 import { X, CornerDownLeft } from 'lucide-react';
 
