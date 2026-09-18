@@ -41,7 +41,7 @@ export class SyncQueue {
       SELECT * FROM sync_mutations 
       WHERE (
         status = 'pending' 
-        OR (status = 'failed' AND retry_count < ? AND (next_attempt_at IS NULL OR next_attempt_at <= ?))
+        OR (status = 'failed' AND retry_count < ? AND next_attempt_at IS NOT NULL AND next_attempt_at <= ?)
       )
     `;
     const params: any[] = [MAX_SYNC_RETRIES, nowIso];
