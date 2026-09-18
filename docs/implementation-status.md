@@ -17,14 +17,14 @@
 ✅ stale documentation (Phase 1-E)
 
 ## Phase 2 — Monorepo
-❌ npm workspaces root (coordination point)
-❌ apps/mobile (moved from expo-app/)
+✅ npm workspaces root (coordination point)
+✅ apps/mobile (moved from expo-app/)
 ✅ apps/desktop (scaffold & full app)
-❌ packages/types
-❌ packages/core
+✅ packages/types (scaffolded)
+✅ packages/core (scaffolded)
 ✅ packages/validation
 ✅ packages/api-client
-❌ packages/design-tokens
+✅ packages/design-tokens (scaffolded)
 ✅ backend/ scaffold
 ✅ CI pipeline (GitHub Actions)
 ✅ docker-compose.yml
