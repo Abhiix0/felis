@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { Project, Task, Recommendation } from '../types';
 import { computeNextAction } from '../domain/recommendation';
 import { loadState, saveState, clearState } from '../storage/persistence';
+import { LoadingState, ErrorState } from '../components/ui';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -121,6 +122,9 @@ interface AppContextType {
   tasks: Task[];
   recommendation: Recommendation | null;
   focusSession: FocusSessionState | null;
+  isLoadingState: boolean;
+  loadError: string | null;
+  retryLoad: () => Promise<void>;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
   createTask: (title: string, projectName: string, priority: 'low' | 'medium' | 'high', due: string, estMin: number) => void;
@@ -139,42 +143,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isLoadingState, setIsLoadingState] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const recommendation = useMemo(() => computeNextAction(tasks), [tasks]);
+
+  const performLoad = async () => {
+    setIsLoadingState(true);
+    setLoadError(null);
+    try {
+      const stored = await loadState();
+      if (stored) {
+        if (Array.isArray(stored.projects)) {
+          setProjects(stored.projects);
+        }
+        if (Array.isArray(stored.tasks)) {
+          setTasks(stored.tasks);
+        }
+      }
+    } catch (err: any) {
+      console.error('[AppContext] Failed to load persisted state:', err);
+      setLoadError(err?.message || "Couldn't load your projects. Please try again.");
+    } finally {
+      setIsLoadingState(false);
+      setIsHydrated(true);
+    }
+  };
 
   // Hydrate persisted state on mount
   useEffect(() => {
-    let mounted = true;
-    loadState()
-      .then((stored) => {
-        if (mounted && stored) {
-          if (Array.isArray(stored.projects) && stored.projects.length > 0) {
-            setProjects(stored.projects);
-          }
-          if (Array.isArray(stored.tasks) && stored.tasks.length > 0) {
-            setTasks(stored.tasks);
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn('[AppContext] Hydration failed, falling back to demo data:', err);
-      })
-      .finally(() => {
-        if (mounted) {
-          setIsHydrated(true);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
+    performLoad();
   }, []);
 
   // Save changes on every task/project mutation once hydrated
   useEffect(() => {
-    if (isHydrated) {
+    if (isHydrated && !isLoadingState && !loadError) {
       saveState({ projects, tasks });
     }
-  }, [projects, tasks, isHydrated]);
+  }, [projects, tasks, isHydrated, isLoadingState, loadError]);
 
   const [focusSession, setFocusSession] = useState<FocusSessionState | null>({
     taskId: 'task-auth-tests',
@@ -336,6 +341,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         tasks,
         recommendation,
         focusSession,
+        isLoadingState,
+        loadError,
+        retryLoad: performLoad,
         toggleTask,
         toggleSubtask,
         createTask,
@@ -348,7 +356,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetDemoData,
       }}
     >
-      {children}
+      {isLoadingState ? (
+        <LoadingState message="Loading your projects..." fullScreen />
+      ) : loadError ? (
+        <ErrorState
+          title="Something went wrong."
+          message={loadError}
+          onRetry={performLoad}
+          fullScreen
+        />
+      ) : (
+        children
+      )}
     </AppContext.Provider>
   );
 };

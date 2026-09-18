@@ -13,7 +13,7 @@ import { useApp } from '../../src/context/AppContext';
 import { FocusTimer } from '../../src/components/FocusTimer';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
-import { Card } from '../../src/components/ui';
+import { Card, CompletedState } from '../../src/components/ui';
 
 export default function FocusSessionScreen() {
   const router = useRouter();
@@ -30,6 +30,28 @@ export default function FocusSessionScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <Text style={styles.errorText}>No focus session active</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (focusSession.isFinished) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+        <CompletedState
+          title="Nice. Done."
+          subtitle={focusSession.taskTitle}
+          actionLabel="View details"
+          onAction={() => {
+            resetFocus();
+            router.push('/tasks');
+          }}
+          secondaryActionLabel="Back to Home"
+          onSecondaryAction={() => {
+            resetFocus();
+            router.replace('/(tabs)');
+          }}
+          fullScreen
+        />
       </SafeAreaView>
     );
   }

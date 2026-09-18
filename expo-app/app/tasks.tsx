@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Plus, Check } from 'lucide-react-native';
 import { useApp } from '../src/context/AppContext';
 import { colors, spacing, radius, typography } from '../src/theme/tokens';
-import { Chip } from '../src/components/ui';
+import { Chip, EmptyState } from '../src/components/ui';
 
 export default function TasksScreen() {
   const router = useRouter();
@@ -62,54 +62,78 @@ export default function TasksScreen() {
           />
         </View>
 
-        {/* Task list */}
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-          {filteredTasks.map((task) => (
-            <View key={task.id} style={styles.taskItem}>
-              <Pressable
-                style={[
-                  styles.checkbox,
-                  task.completed && styles.checkboxCompleted,
-                ]}
-                onPress={() => toggleTask(task.id)}
-              >
-                {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
-              </Pressable>
-
-              <Pressable
-                style={styles.taskContent}
-                onPress={() => {
-                  startFocus(task.id);
-                  router.push(`/focus/${task.id}`);
-                }}
-              >
-                <Text
+        {/* Task list or Empty State */}
+        {filteredTasks.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            {tasks.length === 0 ? (
+              <EmptyState
+                type="tasks"
+                onAction={() => router.push('/add-task')}
+              />
+            ) : filter === 'active' ? (
+              <EmptyState
+                type="all_completed"
+                title="All clear."
+                description="Nothing left for now. Time to rest or plan ahead."
+              />
+            ) : (
+              <EmptyState
+                type="tasks"
+                title="No completed tasks"
+                description="Tasks you complete will appear here."
+                actionLabel={undefined}
+              />
+            )}
+          </View>
+        ) : (
+          <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+            {filteredTasks.map((task) => (
+              <View key={task.id} style={styles.taskItem}>
+                <Pressable
                   style={[
-                    styles.taskTitle,
-                    task.completed && styles.taskTitleCompleted,
+                    styles.checkbox,
+                    task.completed && styles.checkboxCompleted,
                   ]}
+                  onPress={() => toggleTask(task.id)}
                 >
-                  {task.title}
-                </Text>
-                <View style={styles.taskMeta}>
-                  <Text style={styles.metaProject}>{task.projectName}</Text>
-                  {task.dueDate && (
-                    <>
-                      <Text style={styles.metaDot}>·</Text>
-                      <Text style={styles.metaDue}>{task.dueDate}</Text>
-                    </>
-                  )}
-                  {task.estimatedMinutes && (
-                    <>
-                      <Text style={styles.metaDot}>·</Text>
-                      <Text style={styles.metaTime}>{task.estimatedMinutes}m</Text>
-                    </>
-                  )}
-                </View>
-              </Pressable>
-            </View>
-          ))}
-        </ScrollView>
+                  {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
+                </Pressable>
+
+                <Pressable
+                  style={styles.taskContent}
+                  onPress={() => {
+                    startFocus(task.id);
+                    router.push(`/focus/${task.id}`);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.taskTitle,
+                      task.completed && styles.taskTitleCompleted,
+                    ]}
+                  >
+                    {task.title}
+                  </Text>
+                  <View style={styles.taskMeta}>
+                    <Text style={styles.metaProject}>{task.projectName}</Text>
+                    {task.dueDate && (
+                      <>
+                        <Text style={styles.metaDot}>·</Text>
+                        <Text style={styles.metaDue}>{task.dueDate}</Text>
+                      </>
+                    )}
+                    {task.estimatedMinutes && (
+                      <>
+                        <Text style={styles.metaDot}>·</Text>
+                        <Text style={styles.metaTime}>{task.estimatedMinutes}m</Text>
+                      </>
+                    )}
+                  </View>
+                </Pressable>
+              </View>
+            ))}
+          </ScrollView>
+        )}
 
         {/* FAB */}
         <Pressable
@@ -167,6 +191,10 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     marginTop: spacing[8],
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   taskItem: {
     flexDirection: 'row',

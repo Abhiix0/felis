@@ -129,6 +129,57 @@ export const CatIllustration: React.FC<CatIllustrationProps> = ({
           </Svg>
         );
 
+      case 'loading':
+        return (
+          <Svg width={size} height={size} viewBox="0 0 90 90" fill="none">
+            {/* Ears */}
+            <Path d="M 28 26 L 32 10 L 44 20" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M 56 20 L 68 10 L 72 26" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Head tilted slightly */}
+            <Path d="M 28 26 C 22 34 24 46 36 50 C 46 52 58 52 64 50 C 76 46 78 34 72 26 C 66 20 34 20 28 26 Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Large curious round eyes */}
+            <Circle cx="42" cy="36" r="3" fill={color} />
+            <Circle cx="58" cy="36" r="3" fill={color} />
+            {/* Nose & mouth */}
+            <Path d="M 49 42 L 51 42" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="M 50 42 C 48 45 45 46 42 44" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="M 50 42 C 52 45 55 46 58 44" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Body */}
+            <Path d="M 32 50 C 26 60 28 80 40 82 C 50 84 66 84 72 80 C 78 74 76 60 68 50" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Little front paws */}
+            <Path d="M 44 82 L 44 70" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="M 54 82 L 54 70" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Gentle tail */}
+            <Path d="M 72 80 C 84 82 88 72 84 66" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          </Svg>
+        );
+
+      case 'error':
+        return (
+          <Svg width={size} height={size * 0.9} viewBox="0 0 100 90" fill="none">
+            {/* Ears - one flat */}
+            <Path d="M 28 28 L 26 12 L 40 22" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M 56 22 L 72 16 L 70 30" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Head */}
+            <Path d="M 28 28 C 20 36 24 48 34 52 C 44 54 58 54 66 50 C 76 46 78 34 70 30 C 64 22 34 22 28 28 Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* One eye open, one squinting */}
+            <Circle cx="40" cy="38" r="3" fill={color} />
+            <Path d="M 56 38 L 64 38" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Confused mouth */}
+            <Path d="M 48 44 Q 52 42 56 46" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Body */}
+            <Path d="M 30 52 C 24 62 26 80 38 82 C 50 84 66 84 72 80 C 78 74 74 60 66 50" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Paws */}
+            <Path d="M 42 82 L 42 70" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <Path d="M 52 82 L 52 70" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Tail */}
+            <Path d="M 72 80 C 82 82 86 70 80 64" stroke={color} strokeWidth="2" strokeLinecap="round" />
+            {/* Little question squiggle */}
+            <Path d="M 84 24 Q 88 18 94 22 Q 94 28 88 32" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <Circle cx="88" cy="36" r="1.5" fill={color} />
+          </Svg>
+        );
+
       default:
         // Idle
         return (

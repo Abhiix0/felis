@@ -16,34 +16,30 @@ export interface PersistedState {
  * Returns null on first launch or if stored data is corrupted.
  */
 export async function loadState(): Promise<{ projects: Project[]; tasks: Task[] } | null> {
-  try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<PersistedState>;
-
-    // Basic schema integrity check
-    if (
-      parsed &&
-      typeof parsed === 'object' &&
-      Array.isArray(parsed.projects) &&
-      Array.isArray(parsed.tasks)
-    ) {
-      return {
-        projects: parsed.projects,
-        tasks: parsed.tasks,
-      };
-    }
-
-    console.warn('[Storage] Corrupted state structure encountered. Falling back to default data.');
-    return null;
-  } catch (error) {
-    console.warn('[Storage] Failed to read from AsyncStorage:', error);
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (!raw) {
     return null;
   }
+
+  const parsed = JSON.parse(raw) as Partial<PersistedState>;
+
+  // Basic schema integrity check
+  if (
+    parsed &&
+    typeof parsed === 'object' &&
+    Array.isArray(parsed.projects) &&
+    Array.isArray(parsed.tasks)
+  ) {
+    return {
+      projects: parsed.projects,
+      tasks: parsed.tasks,
+    };
+  }
+
+  console.warn('[Storage] Corrupted state structure encountered. Falling back to default data.');
+  return null;
 }
+
 
 /**
  * Saves tasks and projects into local device storage under a versioned key.

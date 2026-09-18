@@ -13,7 +13,7 @@ import { Search, Plus, Terminal, Database, Cloud, FileCode, MoreVertical, X } fr
 import { useApp } from '../../src/context/AppContext';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
-import { Card } from '../../src/components/ui';
+import { Card, EmptyState } from '../../src/components/ui';
 
 export default function ProjectsScreen() {
   const router = useRouter();
@@ -41,7 +41,10 @@ export default function ProjectsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, projects.length === 0 && { flexGrow: 1 }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.headerRow}>
           <Text style={styles.headerTitle}>Projects</Text>
@@ -74,42 +77,49 @@ export default function ProjectsScreen() {
           </View>
         )}
 
-        {/* Project Cards */}
-        <View style={styles.projectsList}>
-          {filtered.map((project) => (
-            <Card
-              key={project.id}
-              style={styles.projectCard}
-              onPress={() => router.push(`/project/${project.id}`)}
-              pressedStyle={{ borderColor: colors.borderSubtle, backgroundColor: colors.surfaceRaised }}
-            >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
-                  <View style={styles.iconWrapper}>
-                    {getIcon(project.iconType)}
+        {/* Project Cards or Empty State */}
+        {projects.length === 0 ? (
+          <EmptyState
+            type="projects"
+            onAction={() => router.push('/add-task')}
+          />
+        ) : (
+          <View style={styles.projectsList}>
+            {filtered.map((project) => (
+              <Card
+                key={project.id}
+                style={styles.projectCard}
+                onPress={() => router.push(`/project/${project.id}`)}
+                pressedStyle={{ borderColor: colors.borderSubtle, backgroundColor: colors.surfaceRaised }}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardHeaderLeft}>
+                    <View style={styles.iconWrapper}>
+                      {getIcon(project.iconType)}
+                    </View>
+                    <Text style={styles.projectName}>{project.name}</Text>
                   </View>
-                  <Text style={styles.projectName}>{project.name}</Text>
+                  <MoreVertical size={16} color={colors.textMuted} />
                 </View>
-                <MoreVertical size={16} color={colors.textMuted} />
-              </View>
 
-              <Text style={styles.projectDesc}>{project.description}</Text>
+                <Text style={styles.projectDesc}>{project.description}</Text>
 
-              <View style={styles.statsRow}>
-                <Text style={styles.statsText}>{project.totalTasks} tasks</Text>
-                <Text style={styles.statsDivider}>|</Text>
-                <Text style={styles.statsActive}>{project.activeTasks} active</Text>
-              </View>
-
-              <View style={styles.progressRow}>
-                <View style={styles.progressBarWrapper}>
-                  <ProgressBar percent={project.progressPercent} height={spacing[6]} />
+                <View style={styles.statsRow}>
+                  <Text style={styles.statsText}>{project.totalTasks} tasks</Text>
+                  <Text style={styles.statsDivider}>|</Text>
+                  <Text style={styles.statsActive}>{project.activeTasks} active</Text>
                 </View>
-                <Text style={styles.progressPercentText}>{project.progressPercent}%</Text>
-              </View>
-            </Card>
-          ))}
-        </View>
+
+                <View style={styles.progressRow}>
+                  <View style={styles.progressBarWrapper}>
+                    <ProgressBar percent={project.progressPercent} height={spacing[6]} />
+                  </View>
+                  <Text style={styles.progressPercentText}>{project.progressPercent}%</Text>
+                </View>
+              </Card>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -13,7 +13,7 @@ import { useApp } from '../../src/context/AppContext';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { SignalRail } from '../../src/components/SignalRail';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
-import { Card, SectionLabel, PrimaryButton } from '../../src/components/ui';
+import { Card, SectionLabel, PrimaryButton, EmptyState } from '../../src/components/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -113,52 +113,62 @@ export default function HomeScreen() {
           rightText={`${completedCount} / ${todayTasks.length}`}
         />
 
-        <View style={styles.tasksList}>
-          {todayTasks.map((task) => (
-            <View key={task.id} style={styles.taskRow}>
-              <Pressable
-                style={[
-                  styles.checkbox,
-                  task.completed && styles.checkboxCompleted,
-                ]}
-                onPress={() => toggleTask(task.id)}
-              >
-                {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
-              </Pressable>
+        {tasks.length === 0 ? (
+          <EmptyState
+            type="tasks"
+            onAction={() => router.push('/add-task')}
+            style={{ paddingVertical: spacing[20] }}
+          />
+        ) : (
+          <>
+            <View style={styles.tasksList}>
+              {todayTasks.map((task) => (
+                <View key={task.id} style={styles.taskRow}>
+                  <Pressable
+                    style={[
+                      styles.checkbox,
+                      task.completed && styles.checkboxCompleted,
+                    ]}
+                    onPress={() => toggleTask(task.id)}
+                  >
+                    {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
+                  </Pressable>
 
-              <Pressable
-                style={styles.taskTitleArea}
-                onPress={() => {
-                  startFocus(task.id);
-                  router.push(`/focus/${task.id}`);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.taskTitle,
-                    task.completed && styles.taskTitleCompleted,
-                  ]}
-                >
-                  {task.title}
-                </Text>
-              </Pressable>
+                  <Pressable
+                    style={styles.taskTitleArea}
+                    onPress={() => {
+                      startFocus(task.id);
+                      router.push(`/focus/${task.id}`);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.taskTitle,
+                        task.completed && styles.taskTitleCompleted,
+                      ]}
+                    >
+                      {task.title}
+                    </Text>
+                  </Pressable>
 
-              <Text style={styles.taskProjectTag}>{task.projectName}</Text>
+                  <Text style={styles.taskProjectTag}>{task.projectName}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
 
-        {/* Add task button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.addTaskButton,
-            pressed && { backgroundColor: colors.surfaceRaised },
-          ]}
-          onPress={() => router.push('/add-task')}
-        >
-          <Plus size={14} color={colors.textSecondary} />
-          <Text style={styles.addTaskText}>Add task</Text>
-        </Pressable>
+            {/* Add task button */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.addTaskButton,
+                pressed && { backgroundColor: colors.surfaceRaised },
+              ]}
+              onPress={() => router.push('/add-task')}
+            >
+              <Plus size={14} color={colors.textSecondary} />
+              <Text style={styles.addTaskText}>Add task</Text>
+            </Pressable>
+          </>
+        )}
 
         {/* Bottom AI Assistant bar */}
         <Pressable
