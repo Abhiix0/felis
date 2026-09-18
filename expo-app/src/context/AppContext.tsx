@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { Project, Task, Recommendation } from '../types';
 import { computeNextAction } from '../domain/recommendation';
 import { loadState, saveState, clearState } from '../storage/persistence';
 import { LoadingState, ErrorState } from '../components/ui';
+import { triggerHaptic } from '../utils/haptics';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -198,6 +200,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     actualMinutes: 41,
   });
 
+  // Track background/foreground transitions to prevent timer drift on physical devices
+  useEffect(() => {
+    let backgroundedAt: number | null = null;
+
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        backgroundedAt = Date.now();
+      } else if (nextAppState === 'active' && backgroundedAt !== null) {
+        const elapsed = Math.floor((Date.now() - backgroundedAt) / 1000);
+        backgroundedAt = null;
+
+        if (elapsed > 0) {
+          setFocusSession((prev) => {
+            if (!prev || !prev.isRunning || prev.isFinished) return prev;
+            const newRemaining = Math.max(0, prev.remainingSeconds - elapsed);
+            if (newRemaining <= 0) {
+              if (prev.taskId) {
+                setTasks((currentTasks) =>
+                  currentTasks.map((t) => {
+                    if (t.id === prev.taskId && !t.completed) {
+                      return { ...t, completed: true, completedAt: 'Just now' };
+                    }
+                    return t;
+                  })
+                );
+              }
+              triggerHaptic('success');
+              return {
+                ...prev,
+                remainingSeconds: 0,
+                isRunning: false,
+                isFinished: true,
+              };
+            }
+            return {
+              ...prev,
+              remainingSeconds: newRemaining,
+            };
+          });
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   // Functional Focus Timer
   useEffect(() => {
     let interval: any = null;
@@ -216,6 +266,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 })
               );
             }
+            triggerHaptic('success');
             return {
               ...prev,
               remainingSeconds: 0,
@@ -236,6 +287,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [focusSession?.isRunning, focusSession?.isFinished]);
 
   const toggleTask = (taskId: string) => {
+    triggerHaptic('light');
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -248,6 +300,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleSubtask = (subtaskId: string) => {
+    triggerHaptic('selection');
     setFocusSession((prev) => {
       if (!prev) return null;
       return {
@@ -322,6 +375,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const finishFocus = () => {
+    triggerHaptic('success');
     setFocusSession((prev) => {
       if (!prev) return null;
       if (prev.taskId) {

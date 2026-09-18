@@ -5,6 +5,9 @@ import {
   StyleSheet,
   TextInput,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -57,9 +60,17 @@ export default function AddTaskScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <X size={20} color={colors.textMuted} />
           </Pressable>
@@ -203,8 +214,9 @@ export default function AddTaskScreen() {
             </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
   );
 }
 
@@ -213,10 +225,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
-  container: {
+  keyboardContainer: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: spacing[20],
     paddingTop: spacing[8],
+    paddingBottom: spacing[40],
   },
   header: {
     flexDirection: 'row',
