@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { X, Sparkles, FolderClosed, Clock, Flag } from 'lucide-react-native';
+import { X, Sparkles, FolderClosed, Clock, Flag, Calendar } from 'lucide-react-native';
 import { useApp } from '../src/context/AppContext';
+import { parseQuickAddInput } from '../src/domain/taskParsing';
 import { colors, spacing, radius, typography } from '../src/theme/tokens';
 import { Chip } from '../src/components/ui';
 
@@ -18,13 +19,39 @@ export default function AddTaskScreen() {
   const { createTask, projects } = useApp();
 
   const [input, setInput] = useState('');
-  const [selectedProject, setSelectedProject] = useState(projects[0]?.name || 'Spawn');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [estMinutes, setEstMinutes] = useState(30);
+  const [manualProject, setManualProject] = useState<string | null>(null);
+  const [manualPriority, setManualPriority] = useState<'low' | 'medium' | 'high' | null>(null);
+  const [manualEstMinutes, setManualEstMinutes] = useState<number | null>(null);
+
+  const parsed = useMemo(() => parseQuickAddInput(input, projects), [input, projects]);
+
+  const effectiveProject = manualProject || parsed.projectName || projects[0]?.name || 'Spawn';
+  const effectivePriority = manualPriority || parsed.priority || 'medium';
+  const effectiveEstMinutes = manualEstMinutes || parsed.estimatedMinutes || 30;
+  const effectiveDueLabel = parsed.dueLabel || 'Due soon';
+
+  const hasDetectedTags = Boolean(
+    parsed.projectName || parsed.dueLabel || parsed.estimatedMinutes || parsed.priority
+  );
+
+  const handleInputChange = (text: string) => {
+    setInput(text);
+    const nextParsed = parseQuickAddInput(text, projects);
+    if (nextParsed.projectName) setManualProject(null);
+    if (nextParsed.priority) setManualPriority(null);
+    if (nextParsed.estimatedMinutes) setManualEstMinutes(null);
+  };
 
   const handleSave = () => {
     if (!input.trim()) return;
-    createTask(input.trim(), selectedProject, priority, 'Due soon', estMinutes);
+    const taskTitle = parsed.title || input.trim();
+    createTask(
+      taskTitle,
+      effectiveProject,
+      effectivePriority,
+      effectiveDueLabel,
+      effectiveEstMinutes
+    );
     router.back();
   };
 
@@ -51,19 +78,68 @@ export default function AddTaskScreen() {
           placeholder="What needs to get done? (e.g., Refactor API #spawn ~45m !high)"
           placeholderTextColor={colors.textMuted}
           value={input}
-          onChangeText={setInput}
+          onChangeText={handleInputChange}
           style={styles.textInput}
           multiline
           autoFocus
         />
 
-        {/* AI Natural language tips */}
-        <View style={styles.aiTip}>
-          <Sparkles size={14} color={colors.accent} />
-          <Text style={styles.aiTipText}>
-            Tip: Type project, estimate, or urgency directly in the box.
-          </Text>
-        </View>
+        {/* AI Natural language tips / Parsed preview */}
+        {input.trim().length === 0 ? (
+          <View style={styles.aiTip}>
+            <Sparkles size={14} color={colors.accent} />
+            <Text style={styles.aiTipText}>
+              Tip: Type project, estimate, or urgency directly in the box.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.previewCard}>
+            <View style={styles.previewHeader}>
+              <Sparkles size={13} color={colors.accent} />
+              <Text style={styles.previewHeaderText}>AI understands it.</Text>
+            </View>
+
+            {hasDetectedTags ? (
+              <View style={styles.previewTags}>
+                {parsed.projectName && (
+                  <View style={styles.previewRow}>
+                    <FolderClosed size={13} color={colors.textMuted} />
+                    <Text style={styles.previewText}>{parsed.projectName}</Text>
+                  </View>
+                )}
+
+                {parsed.dueLabel && (
+                  <View style={styles.previewRow}>
+                    <Calendar size={13} color={colors.textMuted} />
+                    <Text style={styles.previewText}>{parsed.dueLabel}</Text>
+                  </View>
+                )}
+
+                {parsed.estimatedMinutes && (
+                  <View style={styles.previewRow}>
+                    <Clock size={13} color={colors.textMuted} />
+                    <Text style={styles.previewText}>~{parsed.estimatedMinutes} min</Text>
+                  </View>
+                )}
+
+                {parsed.priority && (
+                  <View style={styles.previewRow}>
+                    <Flag size={13} color={colors.accent} />
+                    <View style={styles.priorityBadge}>
+                      <Text style={styles.priorityBadgeText}>
+                        {parsed.priority} priority
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.noTagsText}>
+                No tags detected yet. Type a project name, due date, estimate, or priority.
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Options */}
         <View style={styles.optionsList}>
@@ -78,10 +154,10 @@ export default function AddTaskScreen() {
                 <Chip
                   key={p.id}
                   label={p.name}
-                  active={selectedProject === p.name}
+                  active={effectiveProject === p.name}
                   style={styles.pill}
                   textStyle={styles.pillText}
-                  onPress={() => setSelectedProject(p.name)}
+                  onPress={() => setManualProject(p.name)}
                 />
               ))}
             </View>
@@ -98,10 +174,10 @@ export default function AddTaskScreen() {
                 <Chip
                   key={pr}
                   label={pr}
-                  active={priority === pr}
+                  active={effectivePriority === pr}
                   style={styles.pill}
                   textStyle={styles.pillText}
-                  onPress={() => setPriority(pr)}
+                  onPress={() => setManualPriority(pr)}
                 />
               ))}
             </View>
@@ -118,10 +194,10 @@ export default function AddTaskScreen() {
                 <Chip
                   key={m}
                   label={`${m}m`}
-                  active={estMinutes === m}
+                  active={effectiveEstMinutes === m}
                   style={styles.pill}
                   textStyle={styles.pillText}
-                  onPress={() => setEstMinutes(m)}
+                  onPress={() => setManualEstMinutes(m)}
                 />
               ))}
             </View>
@@ -190,6 +266,59 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.textMuted,
     flex: 1,
+  },
+  previewCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.card,
+    padding: spacing[14],
+    marginTop: spacing[12],
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[8],
+    marginBottom: spacing[10],
+  },
+  previewHeaderText: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+  },
+  previewTags: {
+    gap: spacing[8],
+  },
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[10],
+  },
+  previewText: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.text,
+  },
+  priorityBadge: {
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[2],
+    borderRadius: radius.xs,
+    backgroundColor: 'rgba(240, 106, 58, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(240, 106, 58, 0.3)',
+  },
+  priorityBadgeText: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.accent,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  noTagsText: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    lineHeight: 18,
   },
   optionsList: {
     marginTop: spacing[24],
