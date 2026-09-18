@@ -129,7 +129,7 @@ interface AppContextType {
   retryLoad: () => Promise<void>;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
-  createTask: (title: string, projectName: string, priority: 'low' | 'medium' | 'high', due: string, estMin: number) => void;
+  createTask: (title: string, projectId: string, priority: 'low' | 'medium' | 'high', due: string, estMin: number) => void;
   createProject: (name: string, description: string) => void;
   startFocus: (taskId?: string) => void;
   pauseFocus: () => void;
@@ -314,16 +314,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createTask = (
     title: string,
-    projectName: string,
+    projectId: string,
     priority: 'low' | 'medium' | 'high',
     due: string,
     estMin: number
   ) => {
+    const project =
+      projects.find((p) => p.id === projectId || p.name === projectId) || projects[0];
     const newTask: Task = {
       id: `task-${Date.now()}`,
       title,
-      projectId: 'proj-spawn',
-      projectName: projectName || 'Spawn',
+      projectId: project.id,
+      projectName: project.name,
       completed: false,
       dueDate: due || 'Due Friday',
       estimatedMinutes: estMin || 30,

@@ -22,13 +22,17 @@ export default function AddTaskScreen() {
   const { createTask, projects } = useApp();
 
   const [input, setInput] = useState('');
-  const [manualProject, setManualProject] = useState<string | null>(null);
+  const [manualProjectId, setManualProjectId] = useState<string | null>(null);
   const [manualPriority, setManualPriority] = useState<'low' | 'medium' | 'high' | null>(null);
   const [manualEstMinutes, setManualEstMinutes] = useState<number | null>(null);
 
   const parsed = useMemo(() => parseQuickAddInput(input, projects), [input, projects]);
 
-  const effectiveProject = manualProject || parsed.projectName || projects[0]?.name || 'Spawn';
+  const effectiveProjectId =
+    manualProjectId ||
+    projects.find((p) => p.name === parsed.projectName)?.id ||
+    projects[0]?.id;
+  const effectiveProjectName = projects.find((p) => p.id === effectiveProjectId)?.name || '';
   const effectivePriority = manualPriority || parsed.priority || 'medium';
   const effectiveEstMinutes = manualEstMinutes || parsed.estimatedMinutes || 30;
   const effectiveDueLabel = parsed.dueLabel || 'Due soon';
@@ -40,7 +44,7 @@ export default function AddTaskScreen() {
   const handleInputChange = (text: string) => {
     setInput(text);
     const nextParsed = parseQuickAddInput(text, projects);
-    if (nextParsed.projectName) setManualProject(null);
+    if (nextParsed.projectName) setManualProjectId(null);
     if (nextParsed.priority) setManualPriority(null);
     if (nextParsed.estimatedMinutes) setManualEstMinutes(null);
   };
@@ -50,7 +54,7 @@ export default function AddTaskScreen() {
     const taskTitle = parsed.title || input.trim();
     createTask(
       taskTitle,
-      effectiveProject,
+      effectiveProjectId || '',
       effectivePriority,
       effectiveDueLabel,
       effectiveEstMinutes
@@ -165,10 +169,10 @@ export default function AddTaskScreen() {
                 <Chip
                   key={p.id}
                   label={p.name}
-                  active={effectiveProject === p.name}
+                  active={effectiveProjectId === p.id}
                   style={styles.pill}
                   textStyle={styles.pillText}
-                  onPress={() => setManualProject(p.name)}
+                  onPress={() => setManualProjectId(p.id)}
                 />
               ))}
             </View>
