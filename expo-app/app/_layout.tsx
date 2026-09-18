@@ -1,15 +1,18 @@
+import 'react-native-gesture-handler';
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from '../src/context/AppContext';
 import { colors } from '../src/theme/tokens';
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <StatusBar style="light" />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppProvider>
+          <StatusBar style="light" />
         <Stack
           screenOptions={{
             headerShown: false,
@@ -58,5 +61,6 @@ export default function RootLayout() {
         </Stack>
       </AppProvider>
     </SafeAreaProvider>
+  </GestureHandlerRootView>
   );
 }
