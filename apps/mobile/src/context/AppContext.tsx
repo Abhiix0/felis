@@ -5,6 +5,12 @@ import { computeNextAction } from '../domain/recommendation';
 import { loadState, saveState, clearState } from '../storage/persistence';
 import { LoadingState, ErrorState } from '../components/ui';
 import { triggerHaptic } from '../utils/haptics';
+import { LocalProjectRepository } from '../storage/LocalProjectRepository';
+import { LocalTaskRepository } from '../storage/LocalTaskRepository';
+import { ProjectService } from '../services/ProjectService';
+import { TaskService } from '../services/TaskService';
+import { FocusService } from '../services/FocusService';
+import { useAuth } from './AuthContext';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -152,19 +158,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loadError, setLoadError] = useState<string | null>(null);
   const recommendation = useMemo(() => computeNextAction(tasks), [tasks]);
 
+  const localProjectRepo = useMemo(() => new LocalProjectRepository(), []);
+  const localTaskRepo = useMemo(() => new LocalTaskRepository(), []);
+  const projectService = useMemo(() => new ProjectService(localProjectRepo), [localProjectRepo]);
+  const taskService = useMemo(() => new TaskService(localTaskRepo), [localTaskRepo]);
+  const focusService = useMemo(() => new FocusService(), []);
+
   const performLoad = async () => {
     setIsLoadingState(true);
     setLoadError(null);
     try {
-      const stored = await loadState();
-      if (stored) {
-        if (Array.isArray(stored.projects)) {
-          setProjects(stored.projects);
+      let loadedProjects = await projectService.getAll();
+      let loadedTasks = await taskService.getAll();
+
+      // Seed fallback data if first launch or empty
+      if (loadedProjects.length === 0 && loadedTasks.length === 0) {
+        const stored = await loadState();
+        if (stored?.projects?.length || stored?.tasks?.length) {
+          loadedProjects = stored.projects || [];
+          loadedTasks = stored.tasks || [];
+        } else {
+          loadedProjects = INITIAL_PROJECTS;
+          loadedTasks = INITIAL_TASKS;
         }
-        if (Array.isArray(stored.tasks)) {
-          setTasks(stored.tasks);
-        }
+        await localProjectRepo.save(loadedProjects);
+        await localTaskRepo.save(loadedTasks);
       }
+
+      setProjects(loadedProjects);
+      setTasks(loadedTasks);
     } catch (err: any) {
       console.error('[AppContext] Failed to load persisted state:', err);
       setLoadError(err?.message || "Couldn't load your projects. Please try again.");
@@ -285,6 +307,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return t;
       })
     );
+    taskService.toggle(taskId).catch((err) => {
+      console.warn('[AppContext] Failed to toggle task in repo', err);
+    });
   };
 
   const toggleSubtask = (subtaskId: string) => {
@@ -320,6 +345,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       priority,
     };
     setTasks((prev) => [newTask, ...prev]);
+    taskService.create(
+      {
+        title,
+        projectId: project.id,
+        priority,
+        dueDate: due || 'Due Friday',
+        estimateMinutes: estMin || 30,
+      },
+      projects
+    ).catch((err) => {
+      console.warn('[AppContext] Failed to persist task creation', err);
+    });
   };
 
   const createProject = (name: string, description: string) => {
@@ -331,6 +368,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       stack: ['TypeScript', 'Node.js'],
     };
     setProjects((prev) => [...prev, newProj]);
+    projectService.create({
+      name,
+      description,
+      iconType: 'terminal',
+      techStack: ['TypeScript', 'Node.js'],
+    }).catch((err) => {
+      console.warn('[AppContext] Failed to persist project creation', err);
+    });
   };
 
   const startFocus = (taskId?: string) => {
@@ -411,6 +456,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetDemoData = () => {
     setProjects(INITIAL_PROJECTS);
     setTasks(INITIAL_TASKS);
+    localProjectRepo.save(INITIAL_PROJECTS).catch(() => {});
+    localTaskRepo.save(INITIAL_TASKS).catch(() => {});
     clearState();
   };
 

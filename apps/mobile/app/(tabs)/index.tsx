@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Clock, Calendar, ArrowRight, Plus, Sparkles, Check, ChevronRight } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
+import { useAuth } from '../../src/context/AuthContext';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { SignalRail } from '../../src/components/SignalRail';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
@@ -20,6 +21,7 @@ import { getTodayTasks, getActiveTodayTasks } from '../../src/domain/taskSelecto
 export default function HomeScreen() {
   const router = useRouter();
   const { recommendation, tasks, toggleTask, startFocus } = useApp();
+  const { user } = useAuth();
 
   const rawTodayTasks = getTodayTasks(tasks);
   const todayTasks = rawTodayTasks.length > 0 ? rawTodayTasks : tasks.filter((t) => !t.completed);
@@ -41,8 +43,7 @@ export default function HomeScreen() {
         <View style={styles.greetingRow}>
           <View style={styles.greetingTextContainer}>
             <Text style={styles.greetingLight}>Good morning,</Text>
-            {/* TODO: Replace with authenticated user display name (Phase 5) */}
-            <Text style={styles.greetingBold}>Developer</Text>
+            <Text style={styles.greetingBold}>{user?.displayName || 'Developer'}</Text>
             <Text style={styles.greetingSub}>
               You have {activeTodayCount} things to work on today.
             </Text>
