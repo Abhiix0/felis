@@ -1,9 +1,13 @@
 import { LocalProjectRepository } from '../storage/LocalProjectRepository';
+import { SyncQueue } from '../storage/SyncQueue';
 import type { Project } from '@felis/types';
 import type { CreateProjectInput } from '@felis/validation';
 
 export class ProjectService {
-  constructor(private local: LocalProjectRepository) {}
+  constructor(
+    private local: LocalProjectRepository,
+    private queue: SyncQueue = new SyncQueue()
+  ) {}
 
   async getAll(): Promise<Project[]> {
     return this.local.getAll();
@@ -22,8 +26,24 @@ export class ProjectService {
       status: 'active',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      syncStatus: 'pending',
     };
+
     await this.local.upsert(project);
+
+    try {
+      await this.queue.enqueue('CREATE_PROJECT', {
+        id: project.id,
+        name: project.name,
+        goal: project.goal,
+        description: project.description,
+        techStack: project.techStack,
+        iconType: project.iconType,
+      });
+    } catch (err) {
+      console.warn('[ProjectService] Failed to enqueue CREATE_PROJECT:', err);
+    }
+
     return project;
   }
 
@@ -35,6 +55,7 @@ export class ProjectService {
         ...target,
         ...changes,
         updatedAt: new Date().toISOString(),
+        syncStatus: 'pending',
       });
     }
   }

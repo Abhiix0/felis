@@ -20,7 +20,7 @@ import { getTodayTasks, getActiveTodayTasks } from '../../src/domain/taskSelecto
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { recommendation, tasks, toggleTask, startFocus } = useApp();
+  const { recommendation, tasks, toggleTask, startFocus, syncStatus } = useApp();
   const { user } = useAuth();
 
   const rawTodayTasks = getTodayTasks(tasks);
@@ -34,9 +34,22 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header date */}
+        {/* Header date & sync indicator */}
         <View style={styles.dateRow}>
           <Text style={styles.dateText}>{getTodayLabel()}</Text>
+          {syncStatus !== 'synced' && (
+            <View style={styles.syncIndicator}>
+              <View
+                style={[
+                  styles.syncDot,
+                  { backgroundColor: syncStatus === 'failed' ? '#E5533D' : '#E5A93C' },
+                ]}
+              />
+              <Text style={styles.syncText}>
+                {syncStatus === 'failed' ? 'Sync error' : 'Syncing'}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Greeting & Cat */}
@@ -207,12 +220,31 @@ const styles = StyleSheet.create({
   },
   dateRow: {
     paddingVertical: spacing[4],
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   dateText: {
     fontFamily: typography.fontFamily.mono,
     fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
     letterSpacing: 1.5,
+  },
+  syncIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[6],
+  },
+  syncDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  syncText: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: 10,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
   },
   greetingRow: {
     flexDirection: 'row',

@@ -37,6 +37,7 @@ export interface Project {
   stack?: string[]; // compatibility with mobile client
   iconType: IconType;
   status?: ProjectStatus;
+  syncStatus?: SyncStatus;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -80,6 +81,7 @@ export interface Task {
   createdAt?: string;
   updatedAt?: string;
   completedAt?: string;
+  syncStatus?: SyncStatus;
   // Display helpers (client-only, derived from projectId lookup)
   projectName?: string;
 }

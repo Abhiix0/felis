@@ -1,17 +1,20 @@
 import { LocalTaskRepository } from '../storage/LocalTaskRepository';
+import { SyncQueue } from '../storage/SyncQueue';
 import type { Task, Project } from '@felis/types';
 import type { CreateTaskInput, UpdateTaskInput } from '@felis/validation';
 
 export class TaskService {
-  constructor(private local: LocalTaskRepository) {}
+  constructor(
+    private local: LocalTaskRepository,
+    private queue: SyncQueue = new SyncQueue()
+  ) {}
 
   async getAll(): Promise<Task[]> {
     return this.local.getAll();
   }
 
   async getByProject(projectId: string): Promise<Task[]> {
-    const all = await this.local.getAll();
-    return all.filter((t) => t.projectId === projectId);
+    return this.local.getByProject(projectId);
   }
 
   async create(input: CreateTaskInput, projects: Project[] = []): Promise<Task> {
@@ -35,8 +38,28 @@ export class TaskService {
       subtasks: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      syncStatus: 'pending',
     };
+
+    // 1. Optimistic write to local SQLite
     await this.local.upsert(task);
+
+    // 2. Enqueue mutation
+    try {
+      await this.queue.enqueue('CREATE_TASK', {
+        id: task.id,
+        projectId: task.projectId,
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        dueTime: task.dueTime,
+        estimateMinutes: task.estimateMinutes,
+      });
+    } catch (err) {
+      console.warn('[TaskService] Failed to enqueue CREATE_TASK:', err);
+    }
+
     return task;
   }
 
@@ -50,8 +73,17 @@ export class TaskService {
       status: 'completed',
       completedAt: 'Just now',
       updatedAt: new Date().toISOString(),
+      syncStatus: 'pending',
     };
+
     await this.local.upsert(updated);
+
+    try {
+      await this.queue.enqueue('COMPLETE_TASK', { taskId });
+    } catch (err) {
+      console.warn('[TaskService] Failed to enqueue COMPLETE_TASK:', err);
+    }
+
     return updated;
   }
 
@@ -66,8 +98,19 @@ export class TaskService {
       status: isCompleted ? 'completed' : 'pending',
       completedAt: isCompleted ? 'Just now' : undefined,
       updatedAt: new Date().toISOString(),
+      syncStatus: 'pending',
     };
+
     await this.local.upsert(updated);
+
+    try {
+      if (isCompleted) {
+        await this.queue.enqueue('COMPLETE_TASK', { taskId });
+      }
+    } catch (err) {
+      console.warn('[TaskService] Failed to enqueue toggle mutation:', err);
+    }
+
     return updated;
   }
 
@@ -82,6 +125,7 @@ export class TaskService {
       ...target,
       ...changes,
       updatedAt: new Date().toISOString(),
+      syncStatus: 'pending',
     };
     await this.local.upsert(updated);
     return updated;

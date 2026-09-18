@@ -11,6 +11,9 @@ import { ProjectService } from '../services/ProjectService';
 import { TaskService } from '../services/TaskService';
 import { FocusService } from '../services/FocusService';
 import { useAuth } from './AuthContext';
+import { apiClient } from '../api/felisClient';
+import { SyncManager } from '../sync/SyncManager';
+import { useSyncManager } from '../sync/useSyncManager';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -135,6 +138,8 @@ interface AppContextType {
   focusSession: FocusSessionState | null;
   isLoadingState: boolean;
   loadError: string | null;
+  syncStatus: 'synced' | 'pending' | 'failed';
+  triggerSync: () => Promise<void>;
   retryLoad: () => Promise<void>;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
@@ -163,6 +168,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const projectService = useMemo(() => new ProjectService(localProjectRepo), [localProjectRepo]);
   const taskService = useMemo(() => new TaskService(localTaskRepo), [localTaskRepo]);
   const focusService = useMemo(() => new FocusService(), []);
+
+  const syncManager = useMemo(
+    () => new SyncManager(apiClient, localProjectRepo, localTaskRepo),
+    [localProjectRepo, localTaskRepo]
+  );
+  const { syncStatus, triggerSync } = useSyncManager(syncManager);
 
   const performLoad = async () => {
     setIsLoadingState(true);
@@ -307,7 +318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return t;
       })
     );
-    taskService.toggle(taskId).catch((err) => {
+    taskService.toggle(taskId).then(() => triggerSync()).catch((err) => {
       console.warn('[AppContext] Failed to toggle task in repo', err);
     });
   };
@@ -354,7 +365,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         estimateMinutes: estMin || 30,
       },
       projects
-    ).catch((err) => {
+    ).then(() => triggerSync()).catch((err) => {
       console.warn('[AppContext] Failed to persist task creation', err);
     });
   };
@@ -373,7 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       description,
       iconType: 'terminal',
       techStack: ['TypeScript', 'Node.js'],
-    }).catch((err) => {
+    }).then(() => triggerSync()).catch((err) => {
       console.warn('[AppContext] Failed to persist project creation', err);
     });
   };
@@ -470,6 +481,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         focusSession,
         isLoadingState,
         loadError,
+        syncStatus,
+        triggerSync,
         retryLoad: performLoad,
         toggleTask,
         toggleSubtask,
