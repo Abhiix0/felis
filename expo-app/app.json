@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Spawn",
-    "slug": "spawn-mobile",
+    "name": "felis",
+    "slug": "felis",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "spawn",
+    "scheme": "felis",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,22 +15,22 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.spawn.personalos"
+      "bundleIdentifier": "com.felis.personalos"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D0D0C"
       },
-      "package": "com.spawn.personalos",
-      "navigationBar": {
-        "backgroundColor": "#0D0D0C",
-        "barStyle": "light-content"
-      },
-      "statusBar": {
-        "backgroundColor": "#0D0D0C",
-        "barStyle": "light-content"
-      }
+      "package": "com.felis.personalos"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#0D0D0C",
+      "barStyle": "light-content"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#0D0D0C",
+      "barStyle": "light-content"
     },
     "web": {
       "bundler": "metro"
