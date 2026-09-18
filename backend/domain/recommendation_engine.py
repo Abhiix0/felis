@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 import math
 from typing import Optional, List, Dict, Any
 from db.models import Task, Project
@@ -111,7 +111,12 @@ def compute_next_action(
         if round(t_val) > 0:
             signals.append({"type": "time_fit", "value": round(t_val), "reason": t_reason})
 
-        total_score = sum(s["value"] for s in signals)
+        rec_val = score_recency_context(task, now)
+        if round(rec_val) > 0:
+            signals.append({"type": "recency_context", "value": round(rec_val), "reason": "Recently created or updated"})
+
+        raw_total = sum(s["value"] for s in signals)
+        total_score = min(100, max(0, raw_total))
         scored_items.append({"task": task, "signals": signals, "total_score": total_score})
 
     scored_items.sort(key=lambda x: x["total_score"], reverse=True)

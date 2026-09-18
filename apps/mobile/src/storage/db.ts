@@ -57,20 +57,39 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS focus_sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      task_id TEXT NOT NULL,
+      planned_minutes INTEGER NOT NULL DEFAULT 25,
+      started_at TEXT NOT NULL,
+      ended_at TEXT,
+      actual_minutes INTEGER,
+      status TEXT NOT NULL DEFAULT 'running',
+      paused_total_seconds INTEGER NOT NULL DEFAULT 0,
+      sync_status TEXT NOT NULL DEFAULT 'pending',
+      FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS sync_mutations (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL DEFAULT 'local',
       type TEXT NOT NULL,
       payload TEXT NOT NULL,
       created_at TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending',
       retry_count INTEGER NOT NULL DEFAULT 0,
       last_attempt_at TEXT,
+      next_attempt_at TEXT,
       error TEXT
     );
 
+    CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id);
+    CREATE INDEX IF NOT EXISTS idx_tasks_user ON tasks(user_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
     CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
     CREATE INDEX IF NOT EXISTS idx_sync_status ON sync_mutations(status);
+    CREATE INDEX IF NOT EXISTS idx_sync_user ON sync_mutations(user_id);
   `);
 }

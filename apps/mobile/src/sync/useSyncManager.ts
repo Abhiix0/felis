@@ -27,12 +27,22 @@ export function useSyncManager(syncManager: SyncManager) {
       }
     });
 
+    let removeOnlineListener: (() => void) | undefined;
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      const handleOnline = () => {
+        triggerSync();
+      };
+      window.addEventListener('online', handleOnline);
+      removeOnlineListener = () => window.removeEventListener('online', handleOnline);
+    }
+
     const interval = setInterval(() => {
       triggerSync();
-    }, 30000);
+    }, 15000);
 
     return () => {
       subscription.remove();
+      if (removeOnlineListener) removeOnlineListener();
       clearInterval(interval);
     };
   }, [triggerSync]);
@@ -42,3 +52,4 @@ export function useSyncManager(syncManager: SyncManager) {
     triggerSync,
   };
 }
+

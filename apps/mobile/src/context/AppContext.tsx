@@ -2,16 +2,16 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { AppState, AppStateStatus } from 'react-native';
 import { Project, Task, Recommendation } from '../types';
 import { computeNextAction } from '../domain/recommendation';
-import { loadState, saveState, clearState } from '../storage/persistence';
 import { LoadingState, ErrorState } from '../components/ui';
 import { triggerHaptic } from '../utils/haptics';
 import { LocalProjectRepository } from '../storage/LocalProjectRepository';
 import { LocalTaskRepository } from '../storage/LocalTaskRepository';
+import { LocalFocusRepository } from '../storage/LocalFocusRepository';
 import { ProjectService } from '../services/ProjectService';
 import { TaskService } from '../services/TaskService';
 import { FocusService, FocusSessionState, computeActualMinutes } from '../services/FocusService';
 import { useAuth } from './AuthContext';
-import { apiClient } from '../api/felisClient';
+import { apiClient, recommendationsApi } from '../api/felisClient';
 import { SyncManager } from '../sync/SyncManager';
 import { useSyncManager } from '../sync/useSyncManager';
 
@@ -122,12 +122,12 @@ interface AppContextType {
   retryLoad: () => Promise<void>;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
-  createTask: (title: string, projectId: string, priority: 'low' | 'medium' | 'high', due: string, estMin: number) => void;
-  createProject: (name: string, description: string) => void;
-  startFocus: (taskId?: string) => void;
+  createTask: (title: string, projectId: string, priority: 'low' | 'medium' | 'high', due: string, estMin: number) => Promise<Task>;
+  createProject: (name: string, description: string) => Promise<Project>;
+  startFocus: (taskId?: string) => Promise<void>;
   pauseFocus: () => void;
   resumeFocus: () => void;
-  finishFocus: () => void;
+  finishFocus: () => Promise<void>;
   resetFocus: () => void;
   resetDemoData: () => void;
 }
@@ -135,9 +135,11 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const { user } = useAuth();
+  const userId = user?.id || 'local';
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingState, setIsLoadingState] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -147,10 +149,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const localRecommendation = useMemo(() => computeNextAction(tasks), [tasks]);
   const recommendation = serverRecommendation ?? localRecommendation;
 
+  const localProjectRepo = useMemo(() => new LocalProjectRepository(), []);
+  const localTaskRepo = useMemo(() => new LocalTaskRepository(), []);
+  const localFocusRepo = useMemo(() => new LocalFocusRepository(), []);
+
+  const projectService = useMemo(() => new ProjectService(localProjectRepo), [localProjectRepo]);
+  const taskService = useMemo(() => new TaskService(localTaskRepo), [localTaskRepo]);
+  const focusService = useMemo(() => new FocusService(localFocusRepo), [localFocusRepo]);
+
+  const syncManager = useMemo(
+    () => new SyncManager(apiClient, localProjectRepo, localTaskRepo, localFocusRepo),
+    [localProjectRepo, localTaskRepo, localFocusRepo]
+  );
+  const { syncStatus, triggerSync } = useSyncManager(syncManager);
+
   const fetchRecommendation = useCallback(async () => {
     setIsLoadingRecommendation(true);
     try {
-      const data = await apiClient.get<Recommendation>('/recommendations/next-action');
+      const data = await recommendationsApi.getNextAction();
       if (data && data.taskId) {
         setServerRecommendation(data);
       } else {
@@ -164,37 +180,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  const localProjectRepo = useMemo(() => new LocalProjectRepository(), []);
-  const localTaskRepo = useMemo(() => new LocalTaskRepository(), []);
-  const projectService = useMemo(() => new ProjectService(localProjectRepo), [localProjectRepo]);
-  const taskService = useMemo(() => new TaskService(localTaskRepo), [localTaskRepo]);
-  const focusService = useMemo(() => new FocusService(), []);
-
-  const syncManager = useMemo(
-    () => new SyncManager(apiClient, localProjectRepo, localTaskRepo),
-    [localProjectRepo, localTaskRepo]
-  );
-  const { syncStatus, triggerSync } = useSyncManager(syncManager);
-
-  const performLoad = async () => {
+  const performLoad = useCallback(async () => {
     setIsLoadingState(true);
     setLoadError(null);
     try {
-      let loadedProjects = await projectService.getAll();
-      let loadedTasks = await taskService.getAll();
+      let loadedProjects = await projectService.getAll(userId);
+      let loadedTasks = await taskService.getAll(userId);
 
-      // Seed fallback data if first launch or empty
-      if (loadedProjects.length === 0 && loadedTasks.length === 0) {
-        const stored = await loadState();
-        if (stored?.projects?.length || stored?.tasks?.length) {
-          loadedProjects = stored.projects || [];
-          loadedTasks = stored.tasks || [];
-        } else {
-          loadedProjects = INITIAL_PROJECTS;
-          loadedTasks = INITIAL_TASKS;
-        }
-        await localProjectRepo.save(loadedProjects);
-        await localTaskRepo.save(loadedTasks);
+      // Only seed initial demo data if unauthenticated / guest mode and repository is completely empty
+      if (!user && loadedProjects.length === 0 && loadedTasks.length === 0) {
+        loadedProjects = INITIAL_PROJECTS;
+        loadedTasks = INITIAL_TASKS;
+        await localProjectRepo.save(loadedProjects, 'local');
+        await localTaskRepo.save(loadedTasks, 'local');
       }
 
       setProjects(loadedProjects);
@@ -205,21 +203,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setLoadError(err?.message || "Couldn't load your projects. Please try again.");
     } finally {
       setIsLoadingState(false);
-      setIsHydrated(true);
     }
-  };
+  }, [userId, user, projectService, taskService, localProjectRepo, localTaskRepo, fetchRecommendation]);
 
-  // Hydrate persisted state on mount
+  // Hydrate persisted state on mount and when userId changes
   useEffect(() => {
     performLoad();
-  }, []);
-
-  // Save changes on every task/project mutation once hydrated
-  useEffect(() => {
-    if (isHydrated && !isLoadingState && !loadError) {
-      saveState({ projects, tasks });
-    }
-  }, [projects, tasks, isHydrated, isLoadingState, loadError]);
+  }, [performLoad]);
 
   const [focusSession, setFocusSession] = useState<FocusSessionState | null>(null);
 
@@ -300,7 +290,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return t;
       })
     );
-    taskService.toggle(taskId).then(() => {
+    taskService.toggle(taskId, userId).then(() => {
       triggerSync();
       fetchRecommendation();
     }).catch((err) => {
@@ -321,89 +311,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const createTask = (
+  const createTask = async (
     title: string,
     projectId: string,
     priority: 'low' | 'medium' | 'high',
     due: string,
     estMin: number
-  ) => {
+  ): Promise<Task> => {
     const project =
       projects.find((p) => p.id === projectId || p.name === projectId) || projects[0];
-    const newTask: Task = {
-      id: `task-${Date.now()}`,
-      title,
-      projectId: project.id,
-      projectName: project.name,
-      completed: false,
-      dueDate: due || 'Due Friday',
-      estimatedMinutes: estMin || 30,
-      priority,
-    };
-    setTasks((prev) => [newTask, ...prev]);
-    taskService.create(
+
+    const created = await taskService.create(
       {
         title,
-        projectId: project.id,
+        projectId: project ? project.id : projectId,
         priority,
         dueDate: due || 'Due Friday',
         estimateMinutes: estMin || 30,
       },
-      projects
-    ).then(() => {
-      triggerSync();
-      fetchRecommendation();
-    }).catch((err) => {
-      console.warn('[AppContext] Failed to persist task creation', err);
-    });
+      projects,
+      userId
+    );
+
+    setTasks((prev) => [created, ...prev]);
+    triggerSync();
+    fetchRecommendation();
+    return created;
   };
 
-  const createProject = (name: string, description: string) => {
-    const newProj: Project = {
-      id: `proj-${Date.now()}`,
-      name,
-      iconType: 'terminal',
-      description,
-      stack: ['TypeScript', 'Node.js'],
-    };
-    setProjects((prev) => [...prev, newProj]);
-    projectService.create({
-      name,
-      description,
-      iconType: 'terminal',
-      techStack: ['TypeScript', 'Node.js'],
-    }).then(() => triggerSync()).catch((err) => {
-      console.warn('[AppContext] Failed to persist project creation', err);
-    });
+  const createProject = async (name: string, description: string): Promise<Project> => {
+    const created = await projectService.create(
+      {
+        name,
+        description,
+        iconType: 'terminal',
+        techStack: ['TypeScript', 'Node.js'],
+      },
+      userId
+    );
+
+    setProjects((prev) => [...prev, created]);
+    triggerSync();
+    return created;
   };
 
-  const startFocus = (taskId?: string) => {
+  const startFocus = async (taskId?: string) => {
     const target = tasks.find((t) => t.id === taskId) || tasks[0];
-    const estMin = target?.estimatedMinutes || target?.estimateMinutes || 28;
-    setFocusSession({
-      taskId: target.id,
-      taskTitle: target.title,
-      projectName: target.projectName || 'General',
-      totalSeconds: estMin * 60,
-      remainingSeconds: estMin * 60,
-      isRunning: true,
-      isFinished: false,
-      subtasks: target.subtasks || [],
-      estimatedMinutes: estMin,
-      startedAt: Date.now(),
-      pausedTotalSeconds: 0,
-    });
-
-    apiClient.post<{ id?: string }>('/focus-sessions', {
-      taskId: target.id,
-      plannedMinutes: estMin,
-    }).then((res) => {
-      if (res?.id) {
-        setFocusSession((prev) => (prev ? { ...prev, id: res.id } : prev));
-      }
-    }).catch((err) => {
-      console.log('[Focus] Backend focus session start recorded offline:', err);
-    });
+    const sessionState = await focusService.startSession(target, userId);
+    setFocusSession(sessionState);
+    triggerSync();
   };
 
   const pauseFocus = () => {
@@ -427,45 +383,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const finishFocus = () => {
+  const finishFocus = async () => {
     triggerHaptic('success');
-    setFocusSession((prev) => {
-      if (!prev) return null;
-      const actualMinutes = computeActualMinutes(prev);
-      console.log(`[Focus] Finished session for ${prev.taskTitle}: ${actualMinutes} actual minutes`);
+    if (!focusSession) return;
 
-      const sessionId = prev.id || `session-${prev.startedAt}`;
-      apiClient.patch(`/focus-sessions/${sessionId}`, {
-        endedAt: new Date().toISOString(),
-        actualMinutes,
-        status: 'finished',
-      }).catch((err) => {
-        console.log('[Focus] Backend focus session end patch recorded offline:', err);
-      });
+    const currentSession = focusSession;
+    const actualMinutes = computeActualMinutes(currentSession);
+    console.log(`[Focus] Finished session for ${currentSession.taskTitle}: ${actualMinutes} actual minutes`);
 
-      if (prev.taskId) {
-        taskService.complete(prev.taskId).then(() => {
-          triggerSync();
-          fetchRecommendation();
-        }).catch(() => {});
+    await focusService.endSession(currentSession.id, actualMinutes, userId);
 
-        if (recommendation?.taskId === prev.taskId) {
-          apiClient.post(`/recommendations/${recommendation.id || recommendation.taskId}/outcome`, {
-            eventType: 'completed',
-          }).catch(() => {});
-        }
+    if (currentSession.taskId) {
+      await taskService.complete(currentSession.taskId, userId).catch(() => {});
 
-        setTasks((currentTasks) =>
-          currentTasks.map((t) => {
-            if (t.id === prev.taskId && !t.completed) {
-              return { ...t, completed: true, completedAt: 'Just now' };
-            }
-            return t;
-          })
-        );
+      if (recommendation?.taskId === currentSession.taskId && recommendation.id) {
+        await recommendationsApi.recordOutcome(recommendation.id, 'completed').catch(() => {});
       }
-      return { ...prev, isRunning: false, isFinished: true };
-    });
+
+      setTasks((currentTasks) =>
+        currentTasks.map((t) => {
+          if (t.id === currentSession.taskId && !t.completed) {
+            return { ...t, completed: true, completedAt: 'Just now' };
+          }
+          return t;
+        })
+      );
+    }
+
+    setFocusSession((prev) => (prev ? { ...prev, isRunning: false, isFinished: true } : null));
+    triggerSync();
+    fetchRecommendation();
   };
 
   const resetFocus = () => {
@@ -487,9 +434,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetDemoData = () => {
     setProjects(INITIAL_PROJECTS);
     setTasks(INITIAL_TASKS);
-    localProjectRepo.save(INITIAL_PROJECTS).catch(() => {});
-    localTaskRepo.save(INITIAL_TASKS).catch(() => {});
-    clearState();
+    localProjectRepo.save(INITIAL_PROJECTS, userId).catch(() => {});
+    localTaskRepo.save(INITIAL_TASKS, userId).catch(() => {});
   };
 
   return (
@@ -539,3 +485,4 @@ export const useApp = () => {
   if (!ctx) throw new Error('useApp must be used inside AppProvider');
   return ctx;
 };
+

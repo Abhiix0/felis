@@ -1,4 +1,4 @@
-﻿# FELIS Local Development Docker Compose Plan
+# FELIS Local Development Docker Compose Plan
 
 ## Overview
 This document specifies the local development database infrastructure for FELIS using Docker Compose.

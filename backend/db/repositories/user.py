@@ -1,4 +1,4 @@
-﻿from uuid import UUID
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from db.models import User as UserModel, Profile as ProfileModel

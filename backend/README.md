@@ -1,4 +1,4 @@
-﻿# FELIS Backend API
+# FELIS Backend API
 
 FastAPI asynchronous backend for the FELIS Personal Execution OS.
 

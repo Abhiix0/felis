@@ -1,4 +1,11 @@
-import { FelisApiClient } from '@felis/api-client';
+import {
+  FelisApiClient,
+  ProjectsApi,
+  TasksApi,
+  RecommendationsApi,
+  FocusApi,
+  UsersApi,
+} from '@felis/api-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'felis:auth:token';
@@ -17,6 +24,12 @@ export const apiClient = new FelisApiClient({
     AsyncStorage.removeItem(TOKEN_KEY);
   },
 });
+
+export const projectsApi = new ProjectsApi(apiClient);
+export const tasksApi = new TasksApi(apiClient);
+export const recommendationsApi = new RecommendationsApi(apiClient);
+export const focusApi = new FocusApi(apiClient);
+export const usersApi = new UsersApi(apiClient);
 
 export async function loadStoredToken(): Promise<string | null> {
   try {

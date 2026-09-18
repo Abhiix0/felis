@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 export const SyncMutationSchema = z.object({
   clientMutationId: z.string().uuid(),

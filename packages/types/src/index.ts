@@ -2,7 +2,7 @@
 export type Priority = 'low' | 'medium' | 'high';
 export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
-export type FocusSessionStatus = 'running' | 'paused' | 'finished' | 'abandoned';
+export type FocusSessionStatus = 'running' | 'active' | 'paused' | 'finished' | 'completed' | 'abandoned';
 export type SyncStatus = 'synced' | 'pending' | 'failed' | 'conflict';
 export type MemoryType = 'explicit' | 'inferred';
 export type MemoryStatus = 'active' | 'deleted';
@@ -97,6 +97,7 @@ export interface FocusSession {
   actualMinutes?: number;
   status: FocusSessionStatus;
   pausedTotalSeconds: number;
+  syncStatus?: SyncStatus;
 }
 
 // Recommendation

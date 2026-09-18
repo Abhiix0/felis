@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 export const StartFocusSessionSchema = z.object({
   taskId: z.string().uuid(),

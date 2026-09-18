@@ -39,8 +39,8 @@ export class LocalTaskRepository {
     }
   }
 
-  async getByProject(projectId: string): Promise<Task[]> {
-    const all = await this.getAll();
+  async getByProject(projectId: string, userId: string = 'local'): Promise<Task[]> {
+    const all = await this.getAll(userId);
     return all.filter((t) => t.projectId === projectId);
   }
 
@@ -93,7 +93,7 @@ export class LocalTaskRepository {
             `INSERT INTO subtasks (id, task_id, title, completed, completed_at, position)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [
-              s.id || `sub-${Date.now()}-${i}`,
+              s.id || `sub-${task.id}-${i}`,
               task.id,
               s.title,
               s.completed ? 1 : 0,
@@ -108,9 +108,41 @@ export class LocalTaskRepository {
     }
   }
 
-  async save(tasks: Task[]): Promise<void> {
+  async getById(id: string): Promise<Task | null> {
+    try {
+      const db = await openDatabase();
+      const taskRow = await db.getFirstAsync<any>(
+        `SELECT t.*, p.name as project_name 
+         FROM tasks t 
+         LEFT JOIN projects p ON t.project_id = p.id 
+         WHERE t.id = ?`,
+        [id]
+      );
+      if (!taskRow) return null;
+
+      const subtaskRows = await db.getAllAsync<any>(
+        `SELECT * FROM subtasks WHERE task_id = ? ORDER BY position ASC`,
+        [id]
+      );
+      const subtasks: Subtask[] = subtaskRows.map((s) => ({
+        id: s.id,
+        taskId: s.task_id,
+        title: s.title,
+        completed: Boolean(s.completed),
+        completedAt: s.completed_at ?? undefined,
+        position: s.position,
+      }));
+
+      return mapRowToTask(taskRow, subtasks);
+    } catch (err) {
+      console.warn('[LocalTaskRepository] SQLite error getting task by id:', err);
+      return null;
+    }
+  }
+
+  async save(tasks: Task[], userId?: string): Promise<void> {
     for (const t of tasks) {
-      await this.upsert(t);
+      await this.upsert(userId ? { ...t, userId } : t);
     }
   }
 
@@ -121,6 +153,19 @@ export class LocalTaskRepository {
       await db.runAsync('DELETE FROM tasks WHERE id = ?', [taskId]);
     } catch (err) {
       console.warn('[LocalTaskRepository] SQLite error deleting task:', err);
+    }
+  }
+
+  async clearForUser(userId: string): Promise<void> {
+    try {
+      const db = await openDatabase();
+      const taskRows = await db.getAllAsync<{ id: string }>('SELECT id FROM tasks WHERE user_id = ?', [userId]);
+      for (const t of taskRows) {
+        await db.runAsync('DELETE FROM subtasks WHERE task_id = ?', [t.id]);
+      }
+      await db.runAsync('DELETE FROM tasks WHERE user_id = ?', [userId]);
+    } catch (err) {
+      console.warn('[LocalTaskRepository] SQLite error clearing user tasks:', err);
     }
   }
 }

@@ -2,20 +2,25 @@ from uuid import UUID
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from auth.dependencies import get_current_user, AuthenticatedUser
 from db.session import get_db
 from db.repositories.task import TaskRepository
 from db.repositories.project import ProjectRepository
 from db.models import Recommendation as RecommendationModel, RecommendationOutcome as RecommendationOutcomeModel
-from auth.dependencies import get_current_user
-from auth.adapter import AuthenticatedUser
 from domain.recommendation_engine import compute_next_action
+from domain.activity_service import record_activity
+from app.errors import NotFoundError
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
+OutcomeEventType = Literal["shown", "accepted", "started", "dismissed", "completed", "corrected"]
+
 class OutcomeCreate(BaseModel):
-    event: str
+    event: OutcomeEventType
     corrected_task_id: Optional[UUID] = None
     recorded_at: Optional[datetime] = None
 
@@ -67,8 +72,6 @@ async def get_next_action(
     rec_data["id"] = str(rec_record.id)
     return RecommendationResponse(**rec_data)
 
-from domain.activity_service import record_activity
-
 @router.post("/{id}/outcome", status_code=status.HTTP_200_OK)
 async def record_outcome(
     id: UUID,
@@ -76,6 +79,16 @@ async def record_outcome(
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Verify recommendation ownership
+    stmt = select(RecommendationModel).where(
+        RecommendationModel.id == id,
+        RecommendationModel.user_id == current_user.id,
+    )
+    res = await db.execute(stmt)
+    rec = res.scalar_one_or_none()
+    if not rec:
+        raise NotFoundError("Recommendation")
+
     outcome = RecommendationOutcomeModel(
         recommendation_id=id,
         user_id=current_user.id,

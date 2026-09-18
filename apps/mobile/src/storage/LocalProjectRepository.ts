@@ -46,9 +46,23 @@ export class LocalProjectRepository {
     }
   }
 
-  async save(projects: Project[]): Promise<void> {
+  async getById(id: string): Promise<Project | null> {
+    try {
+      const db = await openDatabase();
+      const row = await db.getFirstAsync<any>(
+        'SELECT * FROM projects WHERE id = ?',
+        [id]
+      );
+      return row ? mapRowToProject(row) : null;
+    } catch (err) {
+      console.warn('[LocalProjectRepository] SQLite error getting project by id:', err);
+      return null;
+    }
+  }
+
+  async save(projects: Project[], userId?: string): Promise<void> {
     for (const p of projects) {
-      await this.upsert(p);
+      await this.upsert(userId ? { ...p, userId } : p);
     }
   }
 
@@ -58,6 +72,15 @@ export class LocalProjectRepository {
       await db.runAsync('DELETE FROM projects WHERE id = ?', [projectId]);
     } catch (err) {
       console.warn('[LocalProjectRepository] SQLite error deleting project:', err);
+    }
+  }
+
+  async clearForUser(userId: string): Promise<void> {
+    try {
+      const db = await openDatabase();
+      await db.runAsync('DELETE FROM projects WHERE user_id = ?', [userId]);
+    } catch (err) {
+      console.warn('[LocalProjectRepository] SQLite error clearing user projects:', err);
     }
   }
 }

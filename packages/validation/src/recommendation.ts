@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 export const RecordOutcomeSchema = z.object({
   event: z.enum(['shown', 'accepted', 'started', 'dismissed', 'completed', 'corrected']),

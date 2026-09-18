@@ -10,21 +10,25 @@ export class TaskService {
     private queue: SyncQueue = new SyncQueue()
   ) {}
 
-  async getAll(): Promise<Task[]> {
-    return this.local.getAll();
+  async getAll(userId: string = 'local'): Promise<Task[]> {
+    return this.local.getAll(userId);
   }
 
-  async getByProject(projectId: string): Promise<Task[]> {
-    return this.local.getByProject(projectId);
+  async getByProject(projectId: string, userId: string = 'local'): Promise<Task[]> {
+    return this.local.getByProject(projectId, userId);
   }
 
-  async create(input: CreateTaskInput, projects: Project[] = []): Promise<Task> {
+  async create(
+    input: CreateTaskInput,
+    projects: Project[] = [],
+    userId: string = 'local'
+  ): Promise<Task> {
     const project = input.projectId
       ? projects.find((p) => p.id === input.projectId)
       : undefined;
     const task: Task = {
       id: uuidv4(),
-      userId: 'local',
+      userId,
       projectId: project?.id || input.projectId,
       projectName: project?.name,
       title: input.title,
@@ -47,16 +51,20 @@ export class TaskService {
 
     // 2. Enqueue mutation
     try {
-      await this.queue.enqueue('CREATE_TASK', {
-        id: task.id,
-        projectId: task.projectId,
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        dueDate: task.dueDate,
-        dueTime: task.dueTime,
-        estimateMinutes: task.estimateMinutes,
-      });
+      await this.queue.enqueue(
+        'CREATE_TASK',
+        {
+          id: task.id,
+          projectId: task.projectId,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          dueDate: task.dueDate,
+          dueTime: task.dueTime,
+          estimateMinutes: task.estimateMinutes,
+        },
+        userId
+      );
     } catch (err) {
       console.warn('[TaskService] Failed to enqueue CREATE_TASK:', err);
     }
@@ -64,9 +72,8 @@ export class TaskService {
     return task;
   }
 
-  async complete(taskId: string): Promise<Task | null> {
-    const all = await this.local.getAll();
-    const target = all.find((t) => t.id === taskId);
+  async complete(taskId: string, userId: string = 'local'): Promise<Task | null> {
+    const target = await this.local.getById(taskId);
     if (!target) return null;
     const updated: Task = {
       ...target,
@@ -80,7 +87,7 @@ export class TaskService {
     await this.local.upsert(updated);
 
     try {
-      await this.queue.enqueue('COMPLETE_TASK', { taskId });
+      await this.queue.enqueue('COMPLETE_TASK', { taskId }, userId);
     } catch (err) {
       console.warn('[TaskService] Failed to enqueue COMPLETE_TASK:', err);
     }
@@ -88,9 +95,8 @@ export class TaskService {
     return updated;
   }
 
-  async toggle(taskId: string): Promise<Task | null> {
-    const all = await this.local.getAll();
-    const target = all.find((t) => t.id === taskId);
+  async toggle(taskId: string, userId: string = 'local'): Promise<Task | null> {
+    const target = await this.local.getById(taskId);
     if (!target) return null;
     const isCompleted = !target.completed;
     const updated: Task = {
@@ -106,7 +112,13 @@ export class TaskService {
 
     try {
       if (isCompleted) {
-        await this.queue.enqueue('COMPLETE_TASK', { taskId });
+        await this.queue.enqueue('COMPLETE_TASK', { taskId }, userId);
+      } else {
+        await this.queue.enqueue(
+          'UPDATE_TASK',
+          { id: taskId, completed: false, status: 'pending' },
+          userId
+        );
       }
     } catch (err) {
       console.warn('[TaskService] Failed to enqueue toggle mutation:', err);
@@ -117,10 +129,10 @@ export class TaskService {
 
   async update(
     taskId: string,
-    changes: UpdateTaskInput | Partial<Task>
+    changes: UpdateTaskInput | Partial<Task>,
+    userId: string = 'local'
   ): Promise<Task | null> {
-    const all = await this.local.getAll();
-    const target = all.find((t) => t.id === taskId);
+    const target = await this.local.getById(taskId);
     if (!target) return null;
     const updated: Task = {
       ...target,
@@ -129,10 +141,27 @@ export class TaskService {
       syncStatus: 'pending',
     };
     await this.local.upsert(updated);
+
+    try {
+      await this.queue.enqueue(
+        'UPDATE_TASK',
+        { id: taskId, ...changes },
+        userId
+      );
+    } catch (err) {
+      console.warn('[TaskService] Failed to enqueue UPDATE_TASK:', err);
+    }
+
     return updated;
   }
 
-  async delete(taskId: string): Promise<void> {
+  async delete(taskId: string, userId: string = 'local'): Promise<void> {
     await this.local.delete(taskId);
+    try {
+      await this.queue.enqueue('DELETE_TASK', { id: taskId }, userId);
+    } catch (err) {
+      console.warn('[TaskService] Failed to enqueue DELETE_TASK:', err);
+    }
   }
 }
+

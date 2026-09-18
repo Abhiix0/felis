@@ -1,4 +1,4 @@
-﻿export interface FelisApiConfig {
+export interface FelisApiConfig {
   baseUrl: string;
   getAccessToken: () => string | null;
   onAuthError: () => void;
@@ -115,11 +115,15 @@ export class FelisApiClient {
     return this.request<T>('POST', path, { body, clientMutationId: mutationId });
   }
 
-  patch<T>(path: string, body?: unknown) {
-    return this.request<T>('PATCH', path, { body });
+  put<T>(path: string, body?: unknown, mutationId?: string) {
+    return this.request<T>('PUT', path, { body, clientMutationId: mutationId });
   }
 
-  delete<T>(path: string) {
-    return this.request<T>('DELETE', path);
+  patch<T>(path: string, body?: unknown, mutationId?: string) {
+    return this.request<T>('PATCH', path, { body, clientMutationId: mutationId });
+  }
+
+  delete<T>(path: string, mutationId?: string) {
+    return this.request<T>('DELETE', path, { clientMutationId: mutationId });
   }
 }

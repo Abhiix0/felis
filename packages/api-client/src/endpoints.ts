@@ -1,4 +1,4 @@
-﻿import type { Project, Task, Recommendation, FocusSession, User, Profile } from '@felis/types';
+import type { Project, Task, Recommendation, FocusSession, User, Profile } from '@felis/types';
 import type {
   CreateProjectInput,
   UpdateProjectInput,

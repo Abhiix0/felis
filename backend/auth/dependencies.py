@@ -1,4 +1,4 @@
-﻿from fastapi import Depends
+from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from auth.adapter import AuthenticatedUser, AuthAdapter
 from auth.dev_jwt import DevJWTAdapter

@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 export const CreateTaskSchema = z.object({
   projectId: z.string().uuid().optional(),

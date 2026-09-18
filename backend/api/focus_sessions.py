@@ -12,9 +12,13 @@ from auth.adapter import AuthenticatedUser
 from domain.activity_service import record_activity
 from app.errors import NotFoundError
 
+import uuid
+from db.repositories.task import TaskRepository
+
 router = APIRouter(prefix="/focus-sessions", tags=["focus-sessions"])
 
 class FocusSessionStart(BaseModel):
+    id: Optional[UUID] = None
     taskId: UUID
     plannedMinutes: int = 25
 
@@ -43,6 +47,12 @@ async def start_focus_session(
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Verify task ownership
+    task_repo = TaskRepository(db)
+    task = await task_repo.get_by_id(data.taskId, current_user.id)
+    if not task:
+        raise NotFoundError("Task")
+
     # Idempotency check
     if x_client_mutation_id:
         try:
@@ -69,6 +79,7 @@ async def start_focus_session(
             pass
 
     session = FocusSessionModel(
+        id=data.id or uuid.uuid4(),
         user_id=current_user.id,
         task_id=data.taskId,
         planned_minutes=data.plannedMinutes,

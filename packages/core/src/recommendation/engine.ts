@@ -4,6 +4,7 @@ import {
   scorePriority,
   scoreProjectImportance,
   scoreTimeFit,
+  scoreRecencyContext,
   ScoringContext,
 } from './signals';
 
@@ -58,6 +59,7 @@ export function computeNextAction(
     const priorityScore = Math.round(scorePriority(task));
     const projectScore = Math.round(scoreProjectImportance(task, fullCtx));
     const timeScore = Math.round(scoreTimeFit(task, fullCtx));
+    const recencyScore = Math.round(scoreRecencyContext(task, fullCtx));
     const estMin = task.estimateMinutes ?? task.estimatedMinutes ?? 30;
 
     const signals: RecommendationSignal[] = [
@@ -81,9 +83,15 @@ export function computeNextAction(
         value: timeScore,
         reason: `Estimated ${estMin} min`,
       },
+      {
+        type: 'recency_context' as const,
+        value: recencyScore,
+        reason: 'Recently created or updated',
+      },
     ].filter((s) => s.value > 0);
 
-    const totalScore = signals.reduce((sum, s) => sum + s.value, 0);
+    const rawTotal = signals.reduce((sum, s) => sum + s.value, 0);
+    const totalScore = Math.min(100, Math.max(0, rawTotal));
     return { task, signals, totalScore, index };
   });
 
