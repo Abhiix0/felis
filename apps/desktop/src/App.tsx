@@ -1,14 +1,27 @@
 ﻿import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { DesktopAppProvider } from './context/DesktopAppContext';
+import { AppLayout } from './layout/AppLayout';
+import { HomePage } from './pages/HomePage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { TasksPage } from './pages/TasksPage';
+import { FocusPage } from './pages/FocusPage';
+import { RadarPage } from './pages/RadarPage';
 
 export default function App() {
   return (
-    <div style={{ background: '#0D0D0C', color: '#F1EFE8', minHeight: '100vh',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'monospace' }}>
-      <div style={{ textAlign: 'center' }}>
-        <h1 style={{ color: '#F06A3A', fontSize: 24, marginBottom: 8 }}>FELIS Desktop</h1>
-        <p style={{ color: '#A09E97' }}>Personal Execution OS — Coming in Phase 8</p>
-      </div>
-    </div>
+    <DesktopAppProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="projects" element={<ProjectsPage />} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="focus" element={<FocusPage />} />
+            <Route path="radar" element={<RadarPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </DesktopAppProvider>
   );
 }
