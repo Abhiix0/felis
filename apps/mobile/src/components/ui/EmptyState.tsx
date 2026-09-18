@@ -6,7 +6,7 @@ import { PrimaryButton } from './PrimaryButton';
 import { colors, spacing, typography } from '../../theme/tokens';
 
 export interface EmptyStateProps {
-  type?: 'projects' | 'tasks' | 'all_completed';
+  type?: 'projects' | 'tasks' | 'all_completed' | 'radar';
   title?: string;
   description?: string;
   actionLabel?: string;
@@ -47,6 +47,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           actionLabel: undefined,
           pose: 'focus' as const,
           size: 88,
+        };
+      case 'radar':
+        return {
+          title: 'Coming soon',
+          description: 'Technology radar updates and intelligence will be available in Phase 10.',
+          actionLabel: undefined,
+          pose: 'idle' as const,
+          size: 100,
         };
     }
   };

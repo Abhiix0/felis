@@ -55,21 +55,40 @@
 ✅ Ownership enforcement
 
 ## Phase 6 — Mobile Real Data (Engineer A)
-❌ SQLite local storage
-❌ Repository pattern (mobile)
-❌ Backend sync
-❌ Mutation queue
-❌ Offline-first behavior
+✅ SQLite local storage
+✅ Repository pattern (mobile)
+✅ Backend sync
+✅ Mutation queue
+✅ Offline-first behavior
 
 ## Phase 7 — Core FELIS Loop
 ✅ Backend recommendation engine (Python)
 ✅ Recommendation next-action endpoint & outcome tracking
 ✅ Focus session management endpoints & duration calculation
-❌ Mobile end-to-end integration
+✅ Mobile end-to-end integration
 
-## Phase 8 — Desktop Foundation
+## Phase 8 — Desktop Foundation & Mobile Polish
 ✅ apps/desktop Vite & React application
 ✅ AppLayout with sidebar & navigation
 ✅ Home, Projects, Tasks, Focus, Radar pages
 ✅ Command-K Quick Add modal
 ✅ Desktop API client connection
+✅ Mobile polish & empty states (Home, Projects, Tasks, Radar)
+✅ Mobile domain tests (recommendation, taskParsing)
+✅ Mobile auth gate (LoginScreen, session restore)
+✅ Profile tab with user session, sign-out, app version & sync status
+
+## Milestone Status Summary
+✅ End-to-end core loop (mobile)
+✅ SQLite local storage
+✅ Sync queue + manager
+✅ Backend API integration
+✅ Recommendation from backend
+✅ Focus session persistence
+✅ Auth gate (mobile)
+✅ Desktop foundation (home, projects, tasks, focus)
+🟡 Desktop sync (Phase 9)
+🟡 Memory (Phase 10)
+🟡 Daily Review (Phase 10)
+❌ Notifications (Phase 10)
+❌ Radar (Phase 10)

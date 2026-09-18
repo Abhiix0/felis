@@ -63,9 +63,11 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.catWrapper}>
-            <Text style={styles.speechBubble}>let's do this &lt;3</Text>
+            <Text style={styles.speechBubble}>
+              {activeTodayCount > 0 ? "let's do this <3" : "all done <3"}
+            </Text>
             <CatIllustration
-              pose="recommendation"
+              pose={activeTodayCount > 0 ? "recommendation" : "empty"}
               size={64}
               interactive
               onTap={() => router.push('/modal/recommendation')}

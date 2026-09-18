@@ -7,6 +7,8 @@ export interface ParsedTaskInput {
   priority?: Priority;
   dueDate?: string;
   dueLabel?: string;
+  dueDateLabel?: string;
+  estimateMinutes?: number;
   estimatedMinutes?: number;
   isUncertain?: boolean;
 }
@@ -133,7 +135,7 @@ export function parseQuickAddInput(
     .replace(/,?\s*\burgent\b/gi, '')
     .replace(/,?\s*!(high|medium|low)\b/gi, '')
     .replace(/,?\s*~?\d+(?:\.\d+)?\s*(?:h|hr|hrs|hours?|m|min|mins|minutes?)\b/gi, '')
-    .replace(/,?\s*(?:by|due)\s+(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '')
+    .replace(/,?\s*(?:(?:by|due)\s+)?(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '')
     .replace(/#\w+\b/g, '')
     .replace(/,\s*,/g, ',')
     .replace(/^,\s*|,\s*$/g, '')
@@ -147,6 +149,8 @@ export function parseQuickAddInput(
     priority,
     dueDate,
     dueLabel,
+    dueDateLabel: dueLabel,
+    estimateMinutes: estimatedMinutes,
     estimatedMinutes,
   };
 }

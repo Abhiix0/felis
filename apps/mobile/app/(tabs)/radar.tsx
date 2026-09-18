@@ -2,9 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Radio } from 'lucide-react-native';
-import { CatIllustration } from '../../src/components/CatIllustration';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
-import { Card } from '../../src/components/ui';
+import { Card, EmptyState } from '../../src/components/ui';
 
 export default function RadarScreen() {
   return (
@@ -16,18 +15,18 @@ export default function RadarScreen() {
         </View>
 
         <View style={styles.centerContent}>
-          <CatIllustration pose="idle" size={84} />
-          <Text style={styles.radarLabel}>Radar</Text>
-          <Text style={styles.radarSub}>
-            Technology updates will appear here.
-          </Text>
+          <EmptyState
+            type="radar"
+            title="Coming soon"
+            description="Technology radar updates and intelligence will be available in Phase 10."
+          />
         </View>
 
         <Card style={styles.signalStatus}>
           <Text style={styles.statusText}>Signal Status</Text>
           <View style={styles.statusBadge}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusBadgeText}>Listening</Text>
+            <Text style={styles.statusBadgeText}>Standby</Text>
           </View>
         </Card>
       </View>
@@ -59,22 +58,9 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   centerContent: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  radarLabel: {
-    fontSize: typography.fontSize.xxl,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: spacing[16],
-  },
-  radarSub: {
-    fontFamily: typography.fontFamily.mono,
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing[6],
-    maxWidth: 220,
   },
   signalStatus: {
     flexDirection: 'row',
@@ -96,11 +82,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: radius.xs,
-    backgroundColor: colors.accentGreen,
+    backgroundColor: colors.accent,
   },
   statusBadgeText: {
     fontFamily: typography.fontFamily.mono,
     fontSize: typography.fontSize.base,
-    color: colors.accentGreen,
+    color: colors.accent,
   },
 });
