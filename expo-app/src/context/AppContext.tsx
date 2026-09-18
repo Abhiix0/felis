@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Project, Task, Recommendation } from '../types';
 import { computeNextAction } from '../domain/recommendation';
+import { loadState, saveState, clearState } from '../storage/persistence';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -137,7 +138,43 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [isHydrated, setIsHydrated] = useState(false);
   const recommendation = useMemo(() => computeNextAction(tasks), [tasks]);
+
+  // Hydrate persisted state on mount
+  useEffect(() => {
+    let mounted = true;
+    loadState()
+      .then((stored) => {
+        if (mounted && stored) {
+          if (Array.isArray(stored.projects) && stored.projects.length > 0) {
+            setProjects(stored.projects);
+          }
+          if (Array.isArray(stored.tasks) && stored.tasks.length > 0) {
+            setTasks(stored.tasks);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('[AppContext] Hydration failed, falling back to demo data:', err);
+      })
+      .finally(() => {
+        if (mounted) {
+          setIsHydrated(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Save changes on every task/project mutation once hydrated
+  useEffect(() => {
+    if (isHydrated) {
+      saveState({ projects, tasks });
+    }
+  }, [projects, tasks, isHydrated]);
 
   const [focusSession, setFocusSession] = useState<FocusSessionState | null>({
     taskId: 'task-auth-tests',
@@ -289,6 +326,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetDemoData = () => {
     setProjects(INITIAL_PROJECTS);
     setTasks(INITIAL_TASKS);
+    clearState();
   };
 
   return (
