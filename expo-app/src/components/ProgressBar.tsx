@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { colors, radius, spacing } from '../theme/tokens';
 
 interface ProgressBarProps {
   percent: number;
@@ -10,9 +11,9 @@ interface ProgressBarProps {
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   percent,
-  height = 6,
-  color = '#F06A3A',
-  backgroundColor = '#1F1F1C',
+  height = spacing[6],
+  color = colors.accent,
+  backgroundColor = colors.surfaceTrack,
 }) => {
   const clamped = Math.min(100, Math.max(0, percent));
 
@@ -35,10 +36,10 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 999,
+    borderRadius: radius.circle,
     overflow: 'hidden',
   },
   fill: {
-    borderRadius: 999,
+    borderRadius: radius.circle,
   },
 });

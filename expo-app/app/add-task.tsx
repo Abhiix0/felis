@@ -10,6 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { X, Sparkles, FolderClosed, Clock, Flag } from 'lucide-react-native';
 import { useApp } from '../src/context/AppContext';
+import { colors, spacing, radius, typography } from '../src/theme/tokens';
+import { Chip } from '../src/components/ui';
 
 export default function AddTaskScreen() {
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function AddTaskScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
-            <X size={20} color="#6F6D67" />
+            <X size={20} color={colors.textMuted} />
           </Pressable>
           <Text style={styles.title}>New Task</Text>
           <Pressable
@@ -47,7 +49,7 @@ export default function AddTaskScreen() {
         {/* Input */}
         <TextInput
           placeholder="What needs to get done? (e.g., Refactor API #spawn ~45m !high)"
-          placeholderTextColor="#6F6D67"
+          placeholderTextColor={colors.textMuted}
           value={input}
           onChangeText={setInput}
           style={styles.textInput}
@@ -57,7 +59,7 @@ export default function AddTaskScreen() {
 
         {/* AI Natural language tips */}
         <View style={styles.aiTip}>
-          <Sparkles size={14} color="#F06A3A" />
+          <Sparkles size={14} color={colors.accent} />
           <Text style={styles.aiTipText}>
             Tip: Type project, estimate, or urgency directly in the box.
           </Text>
@@ -68,28 +70,19 @@ export default function AddTaskScreen() {
           {/* Project select */}
           <View style={styles.optionRow}>
             <View style={styles.optionLabel}>
-              <FolderClosed size={16} color="#A09E97" />
+              <FolderClosed size={16} color={colors.textSecondary} />
               <Text style={styles.optionText}>Project</Text>
             </View>
             <View style={styles.pillsRow}>
               {projects.map((p) => (
-                <Pressable
+                <Chip
                   key={p.id}
-                  style={[
-                    styles.pill,
-                    selectedProject === p.name && styles.pillActive,
-                  ]}
+                  label={p.name}
+                  active={selectedProject === p.name}
+                  style={styles.pill}
+                  textStyle={styles.pillText}
                   onPress={() => setSelectedProject(p.name)}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      selectedProject === p.name && styles.pillTextActive,
-                    ]}
-                  >
-                    {p.name}
-                  </Text>
-                </Pressable>
+                />
               ))}
             </View>
           </View>
@@ -97,25 +90,19 @@ export default function AddTaskScreen() {
           {/* Priority */}
           <View style={styles.optionRow}>
             <View style={styles.optionLabel}>
-              <Flag size={16} color="#A09E97" />
+              <Flag size={16} color={colors.textSecondary} />
               <Text style={styles.optionText}>Priority</Text>
             </View>
             <View style={styles.pillsRow}>
               {(['low', 'medium', 'high'] as const).map((pr) => (
-                <Pressable
+                <Chip
                   key={pr}
-                  style={[styles.pill, priority === pr && styles.pillActive]}
+                  label={pr}
+                  active={priority === pr}
+                  style={styles.pill}
+                  textStyle={styles.pillText}
                   onPress={() => setPriority(pr)}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      priority === pr && styles.pillTextActive,
-                    ]}
-                  >
-                    {pr}
-                  </Text>
-                </Pressable>
+                />
               ))}
             </View>
           </View>
@@ -123,25 +110,19 @@ export default function AddTaskScreen() {
           {/* Duration */}
           <View style={styles.optionRow}>
             <View style={styles.optionLabel}>
-              <Clock size={16} color="#A09E97" />
+              <Clock size={16} color={colors.textSecondary} />
               <Text style={styles.optionText}>Estimate</Text>
             </View>
             <View style={styles.pillsRow}>
               {[15, 30, 45, 60].map((m) => (
-                <Pressable
+                <Chip
                   key={m}
-                  style={[styles.pill, estMinutes === m && styles.pillActive]}
+                  label={`${m}m`}
+                  active={estMinutes === m}
+                  style={styles.pill}
+                  textStyle={styles.pillText}
                   onPress={() => setEstMinutes(m)}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      estMinutes === m && styles.pillTextActive,
-                    ]}
-                  >
-                    {m}m
-                  </Text>
-                </Pressable>
+                />
               ))}
             </View>
           </View>
@@ -154,103 +135,90 @@ export default function AddTaskScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   title: {
-    fontSize: 16,
+    fontSize: typography.fontSize.xl,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   saveBtn: {
-    backgroundColor: '#F06A3A',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 6,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing[14],
+    paddingVertical: spacing[6],
+    borderRadius: radius.md,
   },
   saveBtnDisabled: {
     opacity: 0.4,
   },
   saveBtnText: {
-    color: '#0D0D0C',
-    fontSize: 12,
+    color: colors.bg,
+    fontSize: typography.fontSize.base,
     fontWeight: '700',
   },
   textInput: {
-    color: '#F1EFE8',
-    fontSize: 18,
+    color: colors.text,
+    fontSize: typography.fontSize.xxl,
     minHeight: 80,
-    marginTop: 16,
+    marginTop: spacing[16],
     textAlignVertical: 'top',
   },
   aiTip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#141413',
-    borderColor: '#292925',
+    gap: spacing[8],
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 12,
+    borderRadius: radius.lg,
+    padding: spacing[10],
+    marginTop: spacing[12],
   },
   aiTipText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
     flex: 1,
   },
   optionsList: {
-    marginTop: 24,
-    gap: 16,
+    marginTop: spacing[24],
+    gap: spacing[16],
   },
   optionRow: {
-    gap: 8,
+    gap: spacing[8],
   },
   optionLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing[6],
   },
   optionText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
   pillsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing[8],
   },
   pill: {
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  pillActive: {
-    backgroundColor: '#F06A3A',
-    borderColor: '#F06A3A',
+    paddingHorizontal: spacing[10],
+    paddingVertical: spacing[5],
+    borderRadius: radius.md,
   },
   pillText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
-  },
-  pillTextActive: {
-    color: '#0D0D0C',
-    fontWeight: '700',
+    color: colors.textMuted,
   },
 });

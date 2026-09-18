@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Home, FolderClosed, Radio, User } from 'lucide-react-native';
+import { colors, spacing, typography } from '../../src/theme/tokens';
 
 export default function TabLayout() {
   return (
@@ -8,18 +9,18 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0D0D0C',
-          borderTopColor: '#1D1D1A',
+          backgroundColor: colors.bg,
+          borderTopColor: colors.borderDivider,
           borderTopWidth: 1,
           height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          paddingBottom: spacing[8],
+          paddingTop: spacing[8],
         },
-        tabBarActiveTintColor: '#F06A3A',
-        tabBarInactiveTintColor: '#6F6D67',
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
-          fontFamily: 'monospace',
-          fontSize: 10,
+          fontFamily: typography.fontFamily.mono,
+          fontSize: typography.fontSize.xs,
           fontWeight: '600',
         },
       }}

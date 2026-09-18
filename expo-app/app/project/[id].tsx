@@ -11,6 +11,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Plus, Check, MoreVertical } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
 import { ProgressBar } from '../../src/components/ProgressBar';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card } from '../../src/components/ui';
 
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,10 +38,10 @@ export default function ProjectDetailScreen() {
         {/* Navigation bar */}
         <View style={styles.navBar}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={18} color="#F1EFE8" />
+            <ArrowLeft size={18} color={colors.text} />
             <Text style={styles.backText}>Projects</Text>
           </Pressable>
-          <MoreVertical size={18} color="#6F6D67" />
+          <MoreVertical size={18} color={colors.textMuted} />
         </View>
 
         {/* Title & Desc */}
@@ -58,18 +60,18 @@ export default function ProjectDetailScreen() {
         </View>
 
         {/* Progress Card */}
-        <View style={styles.progressCard}>
+        <Card style={styles.progressCard}>
           <View style={styles.progressTop}>
             <Text style={styles.progressLabel}>PROGRESS</Text>
             <Text style={styles.progressValue}>{project.progressPercent}%</Text>
           </View>
-          <ProgressBar percent={project.progressPercent} height={6} />
+          <ProgressBar percent={project.progressPercent} height={spacing[6]} />
           <View style={styles.statsRow}>
             <Text style={styles.statsText}>{project.totalTasks} total</Text>
             <Text style={styles.statsText}>·</Text>
             <Text style={styles.statsText}>{project.activeTasks} active</Text>
           </View>
-        </View>
+        </Card>
 
         {/* Tabs */}
         <View style={styles.tabBar}>
@@ -111,7 +113,7 @@ export default function ProjectDetailScreen() {
                   ]}
                   onPress={() => toggleTask(task.id)}
                 >
-                  {task.completed && <Check size={12} color="#0D0D0C" strokeWidth={3} />}
+                  {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
                 </Pressable>
 
                 <Pressable
@@ -140,17 +142,29 @@ export default function ProjectDetailScreen() {
               style={styles.addTaskBtn}
               onPress={() => router.push('/add-task')}
             >
-              <Plus size={14} color="#A09E97" />
+              <Plus size={14} color={colors.textSecondary} />
               <Text style={styles.addTaskBtnText}>Add task</Text>
             </Pressable>
           </View>
-        ) : (
+        ) : null}
+
+        {/* Notes View */}
+        {activeTab === 'notes' ? (
           <View style={styles.tabPlaceholder}>
             <Text style={styles.tabPlaceholderText}>
-              {activeTab === 'notes' ? 'No notes yet. Add thoughts or commands.' : 'Production: healthy · Last check 12m ago'}
+              Project documentation, architecture notes, and snippets live here.
             </Text>
           </View>
-        )}
+        ) : null}
+
+        {/* Deploy View */}
+        {activeTab === 'deploy' ? (
+          <View style={styles.tabPlaceholder}>
+            <Text style={styles.tabPlaceholderText}>
+              CI/CD status and deployment triggers will show here.
+            </Text>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -159,193 +173,190 @@ export default function ProjectDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[32],
   },
   errorText: {
-    color: '#F1EFE8',
+    color: colors.textMuted,
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: spacing[40],
   },
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[6],
   },
   backText: {
-    fontSize: 13,
-    color: '#F1EFE8',
-    fontWeight: '500',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   header: {
-    marginTop: 8,
+    marginTop: spacing[8],
   },
   projectTitle: {
-    fontSize: 24,
+    fontSize: typography.fontSize.hero,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
+    letterSpacing: -0.5,
   },
   projectDesc: {
-    fontSize: 13,
-    color: '#A09E97',
-    marginTop: 4,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    marginTop: spacing[8],
+    lineHeight: typography.lineHeight.sm,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10,
+    gap: spacing[6],
+    marginTop: spacing[12],
   },
   tag: {
-    backgroundColor: '#141413',
-    borderColor: '#292925',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing[8],
+    paddingVertical: spacing[3],
   },
   tagText: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
   },
   progressCard: {
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
+    padding: spacing[16],
+    marginTop: spacing[20],
   },
   progressTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing[8],
   },
   progressLabel: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
     letterSpacing: 1.5,
   },
   progressValue: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#F06A3A',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.accent,
     fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 10,
+    gap: spacing[6],
+    marginTop: spacing[10],
   },
   statsText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
   },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#1D1D1A',
-    marginTop: 24,
+    borderBottomColor: colors.borderDivider,
+    marginTop: spacing[24],
   },
   tabButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: spacing[10],
+    paddingHorizontal: spacing[16],
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabButtonActive: {
-    borderBottomColor: '#F06A3A',
+    borderBottomColor: colors.accent,
   },
   tabText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textMuted,
   },
   tabTextActive: {
-    color: '#F06A3A',
+    color: colors.accent,
     fontWeight: '700',
   },
   tasksSection: {
-    marginTop: 12,
+    marginTop: spacing[12],
   },
   taskRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
     borderBottomWidth: 1,
-    borderBottomColor: '#1D1D1A',
-    gap: 12,
+    borderBottomColor: colors.borderDivider,
+    gap: spacing[12],
   },
   checkbox: {
     width: 18,
     height: 18,
-    borderRadius: 5,
+    borderRadius: radius.sm,
     borderWidth: 1.5,
-    borderColor: '#383832',
-    backgroundColor: '#141413',
+    borderColor: colors.borderSubtle,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxCompleted: {
-    backgroundColor: '#B7D96B',
-    borderColor: '#B7D96B',
+    backgroundColor: colors.accentGreen,
+    borderColor: colors.accentGreen,
   },
   taskContent: {
     flex: 1,
   },
   taskTitle: {
-    fontSize: 13,
-    color: '#F1EFE8',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   taskTitleCompleted: {
     textDecorationLine: 'line-through',
-    color: '#6F6D67',
+    color: colors.textMuted,
   },
   taskDue: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#6F6D67',
-    marginTop: 2,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    marginTop: spacing[2],
   },
   addTaskBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
+    gap: spacing[6],
+    paddingVertical: spacing[10],
     borderWidth: 1,
-    borderColor: '#292925',
-    borderRadius: 8,
-    marginTop: 16,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    marginTop: spacing[16],
   },
   addTaskBtnText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
   },
   tabPlaceholder: {
-    padding: 24,
+    padding: spacing[24],
     alignItems: 'center',
   },
   tabPlaceholderText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textMuted,
     textAlign: 'center',
   },
 });

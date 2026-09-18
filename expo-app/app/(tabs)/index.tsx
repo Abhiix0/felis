@@ -12,6 +12,8 @@ import { Clock, Calendar, ArrowRight, Plus, Sparkles, Check, ChevronRight } from
 import { useApp } from '../../src/context/AppContext';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { SignalRail } from '../../src/components/SignalRail';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card, SectionLabel, PrimaryButton } from '../../src/components/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -53,8 +55,8 @@ export default function HomeScreen() {
         </View>
 
         {/* Recommendation Card */}
-        <View style={styles.cardContainer}>
-          <SignalRail color="#F06A3A" width={4} />
+        <Card variant="raised" style={styles.cardContainer}>
+          <SignalRail color={colors.accent} width={spacing[4]} />
 
           <View style={styles.cardContent}>
             <Text style={styles.doThisNowLabel}>DO THIS NOW</Text>
@@ -63,42 +65,35 @@ export default function HomeScreen() {
 
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Clock size={12} color="#A09E97" />
+                <Clock size={12} color={colors.textSecondary} />
                 <Text style={styles.metaText}>~{recommendation.estimatedMinutes} min</Text>
               </View>
               <View style={styles.metaItem}>
-                <Calendar size={12} color="#A09E97" />
+                <Calendar size={12} color={colors.textSecondary} />
                 <Text style={styles.metaText}>{recommendation.dueDateLabel}</Text>
                 <Text style={styles.metaText}>·</Text>
-                <Text style={[styles.metaText, { color: '#F06A3A' }]}>High priority</Text>
+                <Text style={[styles.metaText, { color: colors.accent }]}>High priority</Text>
               </View>
             </View>
 
             <View style={styles.cardActionRow}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.startButton,
-                  pressed && { opacity: 0.8 },
-                ]}
+              <PrimaryButton
+                label="Start"
+                icon={<ArrowRight size={14} color={colors.bg} />}
                 onPress={() => {
                   startFocus(recommendation.taskId);
                   router.push(`/focus/${recommendation.taskId}`);
                 }}
-              >
-                <Text style={styles.startButtonText}>Start</Text>
-                <ArrowRight size={14} color="#0D0D0C" />
-              </Pressable>
+              />
             </View>
           </View>
-        </View>
+        </Card>
 
         {/* Today Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>TODAY</Text>
-          <Text style={styles.sectionCounter}>
-            {completedCount} / {todayTasks.length}
-          </Text>
-        </View>
+        <SectionLabel
+          label="TODAY"
+          rightText={`${completedCount} / ${todayTasks.length}`}
+        />
 
         <View style={styles.tasksList}>
           {todayTasks.map((task) => (
@@ -110,7 +105,7 @@ export default function HomeScreen() {
                 ]}
                 onPress={() => toggleTask(task.id)}
               >
-                {task.completed && <Check size={12} color="#0D0D0C" strokeWidth={3} />}
+                {task.completed && <Check size={12} color={colors.bg} strokeWidth={3} />}
               </Pressable>
 
               <Pressable
@@ -139,11 +134,11 @@ export default function HomeScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.addTaskButton,
-            pressed && { backgroundColor: '#181817' },
+            pressed && { backgroundColor: colors.surfaceRaised },
           ]}
           onPress={() => router.push('/add-task')}
         >
-          <Plus size={14} color="#A09E97" />
+          <Plus size={14} color={colors.textSecondary} />
           <Text style={styles.addTaskText}>Add task</Text>
         </Pressable>
 
@@ -151,15 +146,15 @@ export default function HomeScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.catChatTrigger,
-            pressed && { backgroundColor: '#181817' },
+            pressed && { backgroundColor: colors.surfaceRaised },
           ]}
           onPress={() => router.push('/modal/recommendation')}
         >
           <View style={styles.catTriggerLeft}>
-            <Sparkles size={14} color="#F06A3A" />
+            <Sparkles size={14} color={colors.accent} />
             <Text style={styles.catTriggerText}>What should I work on?</Text>
           </View>
-          <ChevronRight size={14} color="#6F6D67" />
+          <ChevronRight size={14} color={colors.textMuted} />
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -169,47 +164,47 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[24],
   },
   dateRow: {
-    paddingVertical: 4,
+    paddingVertical: spacing[4],
   },
   dateText: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
     letterSpacing: 1.5,
   },
   greetingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: spacing[8],
+    marginBottom: spacing[20],
   },
   greetingTextContainer: {
     flex: 1,
   },
   greetingLight: {
-    fontSize: 26,
+    fontSize: typography.fontSize.displaySm,
     fontWeight: '300',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   greetingBold: {
-    fontSize: 26,
+    fontSize: typography.fontSize.displaySm,
     fontWeight: '700',
-    color: '#F06A3A',
-    marginTop: 2,
+    color: colors.accent,
+    marginTop: spacing[2],
   },
   greetingSub: {
-    fontSize: 12,
-    color: '#A09E97',
-    marginTop: 6,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    marginTop: spacing[6],
   },
   catWrapper: {
     alignItems: 'flex-end',
@@ -219,173 +214,137 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -12,
     right: 0,
-    fontSize: 11,
-    color: '#F06A3A',
+    fontSize: typography.fontSize.sm,
+    color: colors.accent,
     fontWeight: '600',
   },
   cardContainer: {
-    backgroundColor: '#181817',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
     flexDirection: 'row',
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: spacing[24],
   },
   cardContent: {
     flex: 1,
-    padding: 16,
+    padding: spacing[16],
   },
   doThisNowLabel: {
-    fontFamily: 'monospace',
-    fontSize: 10,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
     fontWeight: '700',
-    color: '#F06A3A',
+    color: colors.accent,
     letterSpacing: 1.5,
-    marginBottom: 4,
+    marginBottom: spacing[4],
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: typography.fontSize.xl,
     fontWeight: '600',
-    color: '#F1EFE8',
-    lineHeight: 22,
+    color: colors.text,
+    lineHeight: typography.lineHeight.base,
   },
   cardProject: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#A09E97',
-    marginTop: 2,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    marginTop: spacing[2],
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 12,
+    gap: spacing[12],
+    marginTop: spacing[12],
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing[4],
   },
   metaText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
   },
   cardActionRow: {
     alignItems: 'flex-end',
-    marginTop: 16,
-  },
-  startButton: {
-    backgroundColor: '#F06A3A',
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  startButtonText: {
-    color: '#0D0D0C',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sectionLabel: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
-    letterSpacing: 1.5,
-    fontWeight: '600',
-  },
-  sectionCounter: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    marginTop: spacing[16],
   },
   tasksList: {
     borderTopWidth: 1,
-    borderTopColor: '#1D1D1A',
+    borderTopColor: colors.surfaceHighlight,
   },
   taskRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
     borderBottomWidth: 1,
-    borderBottomColor: '#1D1D1A',
-    gap: 12,
+    borderBottomColor: colors.surfaceHighlight,
+    gap: spacing[12],
   },
   checkbox: {
     width: 18,
     height: 18,
-    borderRadius: 5,
+    borderRadius: radius.sm,
     borderWidth: 1.5,
-    borderColor: '#383832',
-    backgroundColor: '#141413',
+    borderColor: colors.borderSubtle,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxCompleted: {
-    backgroundColor: '#B7D96B',
-    borderColor: '#B7D96B',
+    backgroundColor: colors.accentGreen,
+    borderColor: colors.accentGreen,
   },
   taskTitleArea: {
     flex: 1,
   },
   taskTitle: {
-    fontSize: 13,
-    color: '#F1EFE8',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   taskTitleCompleted: {
     textDecorationLine: 'line-through',
-    color: '#6F6D67',
+    color: colors.textMuted,
   },
   taskProjectTag: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
   },
   addTaskButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
+    gap: spacing[6],
+    paddingVertical: spacing[10],
     borderWidth: 1,
-    borderColor: '#292925',
-    borderRadius: 8,
-    marginTop: 12,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    marginTop: spacing[12],
   },
   addTaskText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
   },
   catChatTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#141413',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#292925',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginTop: 24,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    paddingHorizontal: spacing[14],
+    paddingVertical: spacing[12],
+    marginTop: spacing[24],
   },
   catTriggerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[8],
   },
   catTriggerText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#F1EFE8',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.text,
   },
 });

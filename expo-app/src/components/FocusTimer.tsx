@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { colors, spacing, typography } from '../theme/tokens';
 
 interface FocusTimerProps {
   remainingSeconds: number;
@@ -34,7 +35,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#1F1F1C"
+          stroke={colors.surfaceTrack}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -44,7 +45,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#F06A3A"
+          stroke={colors.accent}
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={strokeDashoffset}
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginVertical: 16,
+    marginVertical: spacing[16],
   },
   svg: {
     transform: [{ rotate: '-90deg' }],
@@ -79,17 +80,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   timeText: {
-    fontFamily: 'monospace',
-    fontSize: 42,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.display,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
     letterSpacing: -1,
   },
   statusText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
-    marginTop: 4,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing[4],
     letterSpacing: 2,
   },
 });

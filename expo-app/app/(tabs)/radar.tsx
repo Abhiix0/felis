@@ -3,6 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Radio } from 'lucide-react-native';
 import { CatIllustration } from '../../src/components/CatIllustration';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card } from '../../src/components/ui';
 
 export default function RadarScreen() {
   return (
@@ -10,7 +12,7 @@ export default function RadarScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Radar</Text>
-          <Radio size={18} color="#6F6D67" />
+          <Radio size={18} color={colors.textMuted} />
         </View>
 
         <View style={styles.centerContent}>
@@ -21,13 +23,13 @@ export default function RadarScreen() {
           </Text>
         </View>
 
-        <View style={styles.signalStatus}>
+        <Card style={styles.signalStatus}>
           <Text style={styles.statusText}>Signal Status</Text>
           <View style={styles.statusBadge}>
             <View style={styles.statusDot} />
             <Text style={styles.statusBadgeText}>Listening</Text>
           </View>
-        </View>
+        </Card>
       </View>
     </SafeAreaView>
   );
@@ -36,73 +38,69 @@ export default function RadarScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[20],
     justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   title: {
-    fontSize: 22,
+    fontSize: typography.fontSize.title,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   radarLabel: {
-    fontSize: 18,
+    fontSize: typography.fontSize.xxl,
     fontWeight: '600',
-    color: '#F1EFE8',
-    marginTop: 16,
+    color: colors.text,
+    marginTop: spacing[16],
   },
   radarSub: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: spacing[6],
     maxWidth: 220,
   },
   signalStatus: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
+    padding: spacing[14],
   },
   statusText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textMuted,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing[6],
   },
   statusDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
-    backgroundColor: '#B7D96B',
+    borderRadius: radius.xs,
+    backgroundColor: colors.accentGreen,
   },
   statusBadgeText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#B7D96B',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.accentGreen,
   },
 });

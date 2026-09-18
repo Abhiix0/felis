@@ -12,6 +12,8 @@ import { useRouter } from 'expo-router';
 import { Search, Plus, Terminal, Database, Cloud, FileCode, MoreVertical, X } from 'lucide-react-native';
 import { useApp } from '../../src/context/AppContext';
 import { ProgressBar } from '../../src/components/ProgressBar';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card } from '../../src/components/ui';
 
 export default function ProjectsScreen() {
   const router = useRouter();
@@ -27,13 +29,13 @@ export default function ProjectsScreen() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'terminal':
-        return <Terminal size={18} color="#F06A3A" />;
+        return <Terminal size={18} color={colors.accent} />;
       case 'database':
-        return <Database size={18} color="#F1EFE8" />;
+        return <Database size={18} color={colors.text} />;
       case 'cloud':
-        return <Cloud size={18} color="#F1EFE8" />;
+        return <Cloud size={18} color={colors.text} />;
       default:
-        return <FileCode size={18} color="#F1EFE8" />;
+        return <FileCode size={18} color={colors.text} />;
     }
   };
 
@@ -48,7 +50,7 @@ export default function ProjectsScreen() {
               style={styles.iconButton}
               onPress={() => setSearchOpen(!searchOpen)}
             >
-              <Search size={18} color="#A09E97" />
+              <Search size={18} color={colors.textSecondary} />
             </Pressable>
           </View>
         </View>
@@ -58,7 +60,7 @@ export default function ProjectsScreen() {
           <View style={styles.searchBar}>
             <TextInput
               placeholder="Search projects..."
-              placeholderTextColor="#6F6D67"
+              placeholderTextColor={colors.textMuted}
               value={searchText}
               onChangeText={setSearchText}
               style={styles.searchInput}
@@ -66,7 +68,7 @@ export default function ProjectsScreen() {
             />
             {searchText ? (
               <Pressable onPress={() => setSearchText('')}>
-                <X size={16} color="#6F6D67" />
+                <X size={16} color={colors.textMuted} />
               </Pressable>
             ) : null}
           </View>
@@ -75,13 +77,11 @@ export default function ProjectsScreen() {
         {/* Project Cards */}
         <View style={styles.projectsList}>
           {filtered.map((project) => (
-            <Pressable
+            <Card
               key={project.id}
-              style={({ pressed }) => [
-                styles.projectCard,
-                pressed && { borderColor: '#383832', backgroundColor: '#181817' },
-              ]}
+              style={styles.projectCard}
               onPress={() => router.push(`/project/${project.id}`)}
+              pressedStyle={{ borderColor: colors.borderSubtle, backgroundColor: colors.surfaceRaised }}
             >
               <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderLeft}>
@@ -90,7 +90,7 @@ export default function ProjectsScreen() {
                   </View>
                   <Text style={styles.projectName}>{project.name}</Text>
                 </View>
-                <MoreVertical size={16} color="#6F6D67" />
+                <MoreVertical size={16} color={colors.textMuted} />
               </View>
 
               <Text style={styles.projectDesc}>{project.description}</Text>
@@ -103,11 +103,11 @@ export default function ProjectsScreen() {
 
               <View style={styles.progressRow}>
                 <View style={styles.progressBarWrapper}>
-                  <ProgressBar percent={project.progressPercent} height={6} />
+                  <ProgressBar percent={project.progressPercent} height={spacing[6]} />
                 </View>
                 <Text style={styles.progressPercentText}>{project.progressPercent}%</Text>
               </View>
-            </Pressable>
+            </Card>
           ))}
         </View>
       </ScrollView>
@@ -118,60 +118,56 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[24],
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: typography.fontSize.title,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
     letterSpacing: -0.5,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[8],
   },
   iconButton: {
-    padding: 6,
-    borderRadius: 8,
+    padding: spacing[6],
+    borderRadius: radius.lg,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#141413',
-    borderColor: '#292925',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginVertical: 8,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing[12],
+    marginVertical: spacing[8],
   },
   searchInput: {
     flex: 1,
-    color: '#F1EFE8',
-    fontSize: 13,
-    paddingVertical: 8,
+    color: colors.text,
+    fontSize: typography.fontSize.md,
+    paddingVertical: spacing[8],
   },
   projectsList: {
-    gap: 14,
-    marginTop: 12,
+    gap: spacing[14],
+    marginTop: spacing[12],
   },
   projectCard: {
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
+    padding: spacing[16],
   },
   cardHeader: {
     flexDirection: 'row',
@@ -181,62 +177,62 @@ const styles = StyleSheet.create({
   cardHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing[12],
   },
   iconWrapper: {
     width: 36,
     height: 36,
-    borderRadius: 8,
-    backgroundColor: '#1D1D1A',
-    borderColor: '#292925',
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceHighlight,
+    borderColor: colors.border,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   projectName: {
-    fontSize: 16,
+    fontSize: typography.fontSize.xl,
     fontWeight: '600',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   projectDesc: {
-    fontSize: 12,
-    color: '#A09E97',
-    marginTop: 10,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    marginTop: spacing[10],
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
+    gap: spacing[8],
+    marginTop: spacing[12],
   },
   statsText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
   },
   statsDivider: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#383832',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.borderSubtle,
   },
   statsActive: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
   progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginTop: 12,
+    gap: spacing[12],
+    marginTop: spacing[12],
   },
   progressBarWrapper: {
     flex: 1,
   },
   progressPercentText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { colors, radius, spacing } from '../theme/tokens';
 
 interface SignalRailProps {
   color?: string;
@@ -7,8 +8,8 @@ interface SignalRailProps {
 }
 
 export const SignalRail: React.FC<SignalRailProps> = ({
-  color = '#F06A3A',
-  width = 4,
+  color = colors.accent,
+  width = spacing[4],
 }) => {
   return (
     <View
@@ -25,8 +26,8 @@ export const SignalRail: React.FC<SignalRailProps> = ({
 
 const styles = StyleSheet.create({
   rail: {
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    borderTopLeftRadius: radius.card,
+    borderBottomLeftRadius: radius.card,
     alignSelf: 'stretch',
   },
 });

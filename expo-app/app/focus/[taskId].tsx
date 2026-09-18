@@ -12,6 +12,8 @@ import { ArrowLeft, Play, Pause, CheckCircle2, RotateCcw } from 'lucide-react-na
 import { useApp } from '../../src/context/AppContext';
 import { FocusTimer } from '../../src/components/FocusTimer';
 import { CatIllustration } from '../../src/components/CatIllustration';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card } from '../../src/components/ui';
 
 export default function FocusSessionScreen() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function FocusSessionScreen() {
         {/* Nav header */}
         <View style={styles.header}>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={18} color="#F1EFE8" />
+            <ArrowLeft size={18} color={colors.text} />
             <Text style={styles.backText}>Home</Text>
           </Pressable>
           <Text style={styles.headerTitle}>Focus Mode</Text>
@@ -64,28 +66,28 @@ export default function FocusSessionScreen() {
         {/* Controls */}
         <View style={styles.controlsRow}>
           <Pressable style={styles.iconBtn} onPress={resetFocus}>
-            <RotateCcw size={18} color="#A09E97" />
+            <RotateCcw size={18} color={colors.textSecondary} />
           </Pressable>
 
           {focusSession.isRunning ? (
             <Pressable style={styles.primaryBtn} onPress={pauseFocus}>
-              <Pause size={20} color="#0D0D0C" />
+              <Pause size={20} color={colors.bg} />
               <Text style={styles.primaryBtnText}>Pause</Text>
             </Pressable>
           ) : (
             <Pressable style={styles.primaryBtn} onPress={resumeFocus}>
-              <Play size={20} color="#0D0D0C" />
+              <Play size={20} color={colors.bg} />
               <Text style={styles.primaryBtnText}>Resume</Text>
             </Pressable>
           )}
 
           <Pressable style={styles.iconBtn} onPress={finishFocus}>
-            <CheckCircle2 size={18} color="#B7D96B" />
+            <CheckCircle2 size={18} color={colors.accentGreen} />
           </Pressable>
         </View>
 
         {/* Subtasks */}
-        <View style={styles.subtasksCard}>
+        <Card style={styles.subtasksCard}>
           <Text style={styles.subtasksHeader}>CHECKLIST</Text>
           {focusSession.subtasks.map((st) => (
             <Pressable
@@ -111,7 +113,7 @@ export default function FocusSessionScreen() {
               </Text>
             </Pressable>
           ))}
-        </View>
+        </Card>
 
         {/* Cat companion */}
         <View style={styles.catCompanion}>
@@ -133,75 +135,75 @@ export default function FocusSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 32,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[32],
     alignItems: 'center',
   },
   errorText: {
-    color: '#F1EFE8',
+    color: colors.text,
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: spacing[40],
   },
   header: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing[6],
   },
   backText: {
-    fontSize: 13,
-    color: '#F1EFE8',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   headerTitle: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.base,
+    color: colors.textMuted,
     letterSpacing: 1.5,
   },
   taskInfo: {
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: spacing[12],
+    marginBottom: spacing[8],
   },
   projectTag: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#F06A3A',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.accent,
     letterSpacing: 1,
   },
   taskTitle: {
-    fontSize: 18,
+    fontSize: typography.fontSize.xxl,
     fontWeight: '600',
-    color: '#F1EFE8',
+    color: colors.text,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: spacing[4],
     maxWidth: 280,
   },
   timerWrapper: {
-    marginVertical: 12,
+    marginVertical: spacing[12],
   },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
-    marginVertical: 16,
+    gap: spacing[20],
+    marginVertical: spacing[16],
   },
   iconBtn: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#141413',
-    borderColor: '#292925',
+    borderRadius: radius.pillLg,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -209,73 +211,69 @@ const styles = StyleSheet.create({
   primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#F06A3A',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
+    gap: spacing[8],
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[12],
+    borderRadius: radius.xl,
   },
   primaryBtnText: {
-    color: '#0D0D0C',
-    fontSize: 14,
+    color: colors.bg,
+    fontSize: typography.fontSize.lg,
     fontWeight: '700',
   },
   subtasksCard: {
     width: '100%',
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
+    padding: spacing[16],
+    marginTop: spacing[16],
   },
   subtasksHeader: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
     letterSpacing: 1.5,
-    marginBottom: 10,
+    marginBottom: spacing[10],
   },
   subtaskRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 8,
+    gap: spacing[12],
+    paddingVertical: spacing[8],
   },
   subtaskBox: {
     width: 16,
     height: 16,
-    borderRadius: 4,
+    borderRadius: radius.xs,
     borderWidth: 1.5,
-    borderColor: '#383832',
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
   subtaskBoxCompleted: {
-    backgroundColor: '#B7D96B',
-    borderColor: '#B7D96B',
+    backgroundColor: colors.accentGreen,
+    borderColor: colors.accentGreen,
   },
   checkMark: {
-    fontSize: 10,
-    color: '#0D0D0C',
+    fontSize: typography.fontSize.xs,
+    color: colors.bg,
     fontWeight: '700',
   },
   subtaskText: {
-    fontSize: 13,
-    color: '#F1EFE8',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   subtaskTextCompleted: {
     textDecorationLine: 'line-through',
-    color: '#6F6D67',
+    color: colors.textMuted,
   },
   catCompanion: {
     alignItems: 'center',
-    marginTop: 24,
-    gap: 6,
+    marginTop: spacing[24],
+    gap: spacing[6],
   },
   catEncouragement: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#A09E97',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
   },
 });

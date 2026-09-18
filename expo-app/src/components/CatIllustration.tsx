@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Svg, { Path, Ellipse, Circle, Line } from 'react-native-svg';
+import { colors, spacing } from '../theme/tokens';
 
 export type CatPose =
   | 'idle'
@@ -28,7 +29,7 @@ export const CatIllustration: React.FC<CatIllustrationProps> = ({
   size = 64,
   interactive = false,
   onTap,
-  color = '#F06A3A',
+  color = colors.accent,
   showCaption = false,
   captionText,
 }) => {
@@ -89,15 +90,15 @@ export const CatIllustration: React.FC<CatIllustrationProps> = ({
         return (
           <Svg width={size} height={size * 0.75} viewBox="0 0 120 90" fill="none">
             {/* Closed notebook underneath */}
-            <Path d="M 15 65 L 100 65 L 94 82 L 10 82 Z" stroke="#383832" strokeWidth="2" fill="#141413" />
-            <Line x1="18" y1="71" x2="96" y2="71" stroke="#292925" strokeWidth="1.5" />
-            <Line x1="16" y1="76" x2="94" y2="76" stroke="#292925" strokeWidth="1.5" />
+            <Path d="M 15 65 L 100 65 L 94 82 L 10 82 Z" stroke={colors.borderSubtle} strokeWidth="2" fill={colors.surface} />
+            <Line x1="18" y1="71" x2="96" y2="71" stroke={colors.border} strokeWidth="1.5" />
+            <Line x1="16" y1="76" x2="94" y2="76" stroke={colors.border} strokeWidth="1.5" />
             {/* Sleeping curled cat */}
             <Path
               d="M 30 65 C 28 44 45 35 62 35 C 78 35 88 46 86 65 C 84 68 32 68 30 65 Z"
               stroke={color}
               strokeWidth="2"
-              fill="#0D0D0C"
+              fill={colors.bg}
             />
             {/* Ears tucked down */}
             <Path d="M 35 44 L 32 35 L 42 40" stroke={color} strokeWidth="1.8" strokeLinejoin="round" />
@@ -124,7 +125,7 @@ export const CatIllustration: React.FC<CatIllustrationProps> = ({
             <Path d="M 32 23 Q 36 26 40 23" stroke={color} strokeWidth="1.8" />
             <Path d="M 34 29 Q 36 33 38 29" stroke={color} strokeWidth="1.8" />
             {/* Little heart */}
-            <Path d="M 54 18 C 54 14 59 13 61 16 C 63 13 68 14 68 18 C 68 23 61 27 61 27 C 61 27 54 23 54 18 Z" stroke="#F06A3A" fill="#F06A3A" />
+            <Path d="M 54 18 C 54 14 59 13 61 16 C 63 13 68 14 68 18 C 68 23 61 27 61 27 C 61 27 54 23 54 18 Z" stroke={colors.accent} fill={colors.accent} />
           </Svg>
         );
 
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   caption: {
     fontSize: 12,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: spacing[4],
     letterSpacing: 0.5,
   },
 });

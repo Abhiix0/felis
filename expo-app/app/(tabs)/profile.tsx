@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Shield, Bell, Moon, ChevronRight } from 'lucide-react-native';
+import { User, Shield, Bell, Moon } from 'lucide-react-native';
 import { CatIllustration } from '../../src/components/CatIllustration';
+import { colors, spacing, radius, typography } from '../../src/theme/tokens';
+import { Card } from '../../src/components/ui';
 
 export default function ProfileScreen() {
   return (
@@ -12,20 +14,20 @@ export default function ProfileScreen() {
           <Text style={styles.title}>Profile</Text>
         </View>
 
-        <View style={styles.userCard}>
+        <Card style={styles.userCard}>
           <View style={styles.avatar}>
-            <User size={24} color="#F06A3A" />
+            <User size={24} color={colors.accent} />
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>Abhi</Text>
             <Text style={styles.userSub}>Developer · Spawn OS</Text>
           </View>
-        </View>
+        </Card>
 
-        <View style={styles.menuSection}>
+        <Card style={styles.menuSection}>
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Moon size={16} color="#A09E97" />
+              <Moon size={16} color={colors.textSecondary} />
               <Text style={styles.menuItemText}>Dark Notebook Mode</Text>
             </View>
             <Text style={styles.activeText}>ACTIVE</Text>
@@ -33,20 +35,20 @@ export default function ProfileScreen() {
 
           <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <Bell size={16} color="#A09E97" />
+              <Bell size={16} color={colors.textSecondary} />
               <Text style={styles.menuItemText}>Haptic & Audio Signals</Text>
             </View>
             <Text style={styles.activeText}>ON</Text>
           </View>
 
-          <View style={styles.menuItem}>
+          <View style={[styles.menuItem, { borderBottomWidth: 0 }]}>
             <View style={styles.menuItemLeft}>
-              <Shield size={16} color="#A09E97" />
+              <Shield size={16} color={colors.textSecondary} />
               <Text style={styles.menuItemText}>Local-First Security</Text>
             </View>
             <Text style={styles.activeText}>OFFLINE</Text>
           </View>
-        </View>
+        </Card>
 
         <View style={styles.catFooter}>
           <CatIllustration pose="completed" size={60} />
@@ -60,39 +62,35 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0D0D0C',
+    backgroundColor: colors.bg,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingHorizontal: spacing[20],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[20],
   },
   header: {
-    paddingVertical: 12,
+    paddingVertical: spacing[12],
   },
   title: {
-    fontSize: 22,
+    fontSize: typography.fontSize.title,
     fontWeight: '700',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    gap: 14,
-    marginTop: 12,
+    padding: spacing[16],
+    gap: spacing[14],
+    marginTop: spacing[12],
   },
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#1D1D1A',
-    borderColor: '#292925',
+    borderRadius: radius.fab,
+    backgroundColor: colors.surfaceHighlight,
+    borderColor: colors.border,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -101,57 +99,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 16,
+    fontSize: typography.fontSize.xl,
     fontWeight: '600',
-    color: '#F1EFE8',
+    color: colors.text,
   },
   userSub: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
-    marginTop: 2,
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing[2],
   },
   menuSection: {
-    backgroundColor: '#141413',
-    borderColor: '#292925',
-    borderWidth: 1,
-    borderRadius: 12,
-    marginTop: 20,
+    marginTop: spacing[20],
     overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[14],
     borderBottomWidth: 1,
-    borderBottomColor: '#1D1D1A',
+    borderBottomColor: colors.borderDivider,
   },
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing[12],
   },
   menuItemText: {
-    fontSize: 13,
-    color: '#F1EFE8',
+    fontSize: typography.fontSize.md,
+    color: colors.text,
   },
   activeText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#F06A3A',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.accent,
     fontWeight: '700',
   },
   catFooter: {
     marginTop: 'auto',
     alignItems: 'center',
-    gap: 8,
-    paddingTop: 20,
+    gap: spacing[8],
+    paddingTop: spacing[20],
   },
   footerNote: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    color: '#6F6D67',
+    fontFamily: typography.fontFamily.mono,
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
   },
 });
