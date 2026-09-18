@@ -30,6 +30,6 @@ export interface Recommendation {
   projectName: string;
   dueDateLabel: string;
   estimatedMinutes: number;
-  priority: 'high';
+  priority: 'low' | 'medium' | 'high';
   reasonBullets: string[];
 }

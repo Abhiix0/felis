@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Project, Task, Recommendation } from '../types';
+import { computeNextAction } from '../domain/recommendation';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -117,7 +118,7 @@ interface FocusSessionState {
 interface AppContextType {
   projects: Project[];
   tasks: Task[];
-  recommendation: Recommendation;
+  recommendation: Recommendation | null;
   focusSession: FocusSessionState | null;
   toggleTask: (taskId: string) => void;
   toggleSubtask: (subtaskId: string) => void;
@@ -136,7 +137,7 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [recommendation] = useState<Recommendation>(INITIAL_RECOMMENDATION);
+  const recommendation = useMemo(() => computeNextAction(tasks), [tasks]);
 
   const [focusSession, setFocusSession] = useState<FocusSessionState | null>({
     taskId: 'task-auth-tests',

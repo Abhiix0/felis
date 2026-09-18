@@ -10,6 +10,45 @@ export default function RecommendationModal() {
   const router = useRouter();
   const { recommendation, startFocus } = useApp();
 
+  if (!recommendation) {
+    return (
+      <View style={styles.overlay}>
+        <Pressable style={styles.backdrop} onPress={() => router.back()} />
+
+        <View style={styles.modalContent}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <View style={styles.headerLeft}>
+              <Sparkles size={16} color={colors.accentGreen} />
+              <Text style={styles.headerTitle}>All Caught Up</Text>
+            </View>
+            <Pressable onPress={() => router.back()}>
+              <X size={18} color={colors.textMuted} />
+            </Pressable>
+          </View>
+
+          {/* Cat */}
+          <View style={styles.catArea}>
+            <CatIllustration pose="completed" size={72} />
+            <Text style={styles.catDialogue}>
+              "You have completed all pending tasks! Take a well-deserved break or add a new task when you're ready."
+            </Text>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actionsRow}>
+            <Pressable
+              style={[styles.primaryBtn, { flex: 1, backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+              onPress={() => router.back()}
+            >
+              <Text style={[styles.primaryBtnText, { color: colors.text }]}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.overlay}>
       <Pressable style={styles.backdrop} onPress={() => router.back()} />

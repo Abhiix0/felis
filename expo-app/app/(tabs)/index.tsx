@@ -55,39 +55,57 @@ export default function HomeScreen() {
         </View>
 
         {/* Recommendation Card */}
-        <Card variant="raised" style={styles.cardContainer}>
-          <SignalRail color={colors.accent} width={spacing[4]} />
+        {recommendation ? (
+          <Card variant="raised" style={styles.cardContainer}>
+            <SignalRail color={colors.accent} width={spacing[4]} />
 
-          <View style={styles.cardContent}>
-            <Text style={styles.doThisNowLabel}>DO THIS NOW</Text>
-            <Text style={styles.cardTitle}>{recommendation.title}</Text>
-            <Text style={styles.cardProject}>{recommendation.projectName}</Text>
+            <View style={styles.cardContent}>
+              <Text style={styles.doThisNowLabel}>DO THIS NOW</Text>
+              <Text style={styles.cardTitle}>{recommendation.title}</Text>
+              <Text style={styles.cardProject}>{recommendation.projectName}</Text>
 
-            <View style={styles.metaRow}>
-              <View style={styles.metaItem}>
-                <Clock size={12} color={colors.textSecondary} />
-                <Text style={styles.metaText}>~{recommendation.estimatedMinutes} min</Text>
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Clock size={12} color={colors.textSecondary} />
+                  <Text style={styles.metaText}>~{recommendation.estimatedMinutes} min</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Calendar size={12} color={colors.textSecondary} />
+                  <Text style={styles.metaText}>{recommendation.dueDateLabel}</Text>
+                  <Text style={styles.metaText}>·</Text>
+                  <Text
+                    style={[
+                      styles.metaText,
+                      { color: recommendation.priority === 'high' ? colors.accent : colors.textSecondary },
+                    ]}
+                  >
+                    {recommendation.priority.charAt(0).toUpperCase() + recommendation.priority.slice(1)} priority
+                  </Text>
+                </View>
               </View>
-              <View style={styles.metaItem}>
-                <Calendar size={12} color={colors.textSecondary} />
-                <Text style={styles.metaText}>{recommendation.dueDateLabel}</Text>
-                <Text style={styles.metaText}>·</Text>
-                <Text style={[styles.metaText, { color: colors.accent }]}>High priority</Text>
+
+              <View style={styles.cardActionRow}>
+                <PrimaryButton
+                  label="Start"
+                  icon={<ArrowRight size={14} color={colors.bg} />}
+                  onPress={() => {
+                    startFocus(recommendation.taskId);
+                    router.push(`/focus/${recommendation.taskId}`);
+                  }}
+                />
               </View>
             </View>
-
-            <View style={styles.cardActionRow}>
-              <PrimaryButton
-                label="Start"
-                icon={<ArrowRight size={14} color={colors.bg} />}
-                onPress={() => {
-                  startFocus(recommendation.taskId);
-                  router.push(`/focus/${recommendation.taskId}`);
-                }}
-              />
+          </Card>
+        ) : (
+          <Card variant="raised" style={styles.cardContainer}>
+            <SignalRail color={colors.accentGreen} width={spacing[4]} />
+            <View style={styles.cardContent}>
+              <Text style={[styles.doThisNowLabel, { color: colors.accentGreen }]}>ALL CAUGHT UP</Text>
+              <Text style={styles.cardTitle}>No pending tasks</Text>
+              <Text style={styles.cardProject}>Great job today!</Text>
             </View>
-          </View>
-        </Card>
+          </Card>
+        )}
 
         {/* Today Section */}
         <SectionLabel
