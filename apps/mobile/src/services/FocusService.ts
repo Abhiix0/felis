@@ -1,6 +1,7 @@
 import type { Task } from '@felis/types';
 
 export interface FocusSessionState {
+  id?: string;
   taskId: string;
   taskTitle: string;
   projectName: string;

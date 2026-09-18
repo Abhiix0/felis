@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { Project, Task, Recommendation } from '../types';
 import { computeNextAction } from '../domain/recommendation';
@@ -9,7 +9,7 @@ import { LocalProjectRepository } from '../storage/LocalProjectRepository';
 import { LocalTaskRepository } from '../storage/LocalTaskRepository';
 import { ProjectService } from '../services/ProjectService';
 import { TaskService } from '../services/TaskService';
-import { FocusService } from '../services/FocusService';
+import { FocusService, FocusSessionState, computeActualMinutes } from '../services/FocusService';
 import { useAuth } from './AuthContext';
 import { apiClient } from '../api/felisClient';
 import { SyncManager } from '../sync/SyncManager';
@@ -106,35 +106,14 @@ export const INITIAL_RECOMMENDATION: Recommendation = {
   ],
 };
 
-export interface FocusSessionState {
-  taskId: string;
-  taskTitle: string;
-  projectName: string;
-  totalSeconds: number;
-  remainingSeconds: number;
-  isRunning: boolean;
-  isFinished: boolean;
-  subtasks: { id: string; title: string; completed: boolean }[];
-  estimatedMinutes: number;
-  startedAt: number;
-  pausedTotalSeconds: number;
-  pauseStartedAt?: number;
-}
-
-export function computeActualMinutes(session: FocusSessionState): number {
-  const elapsedMs = Date.now() - session.startedAt;
-  const elapsedSeconds = Math.floor(elapsedMs / 1000);
-  const currentPause = session.pauseStartedAt
-    ? Math.floor((Date.now() - session.pauseStartedAt) / 1000)
-    : 0;
-  const activeSeconds = Math.max(0, elapsedSeconds - (session.pausedTotalSeconds + currentPause));
-  return Math.max(1, Math.round(activeSeconds / 60));
-}
+export { FocusSessionState, computeActualMinutes };
 
 interface AppContextType {
   projects: Project[];
   tasks: Task[];
   recommendation: Recommendation | null;
+  isLoadingRecommendation: boolean;
+  refreshRecommendation: () => Promise<void>;
   focusSession: FocusSessionState | null;
   isLoadingState: boolean;
   loadError: string | null;
@@ -161,7 +140,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoadingState, setIsLoadingState] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const recommendation = useMemo(() => computeNextAction(tasks), [tasks]);
+
+  const [serverRecommendation, setServerRecommendation] = useState<Recommendation | null>(null);
+  const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
+
+  const localRecommendation = useMemo(() => computeNextAction(tasks), [tasks]);
+  const recommendation = serverRecommendation ?? localRecommendation;
+
+  const fetchRecommendation = useCallback(async () => {
+    setIsLoadingRecommendation(true);
+    try {
+      const data = await apiClient.get<Recommendation>('/recommendations/next-action');
+      if (data && data.taskId) {
+        setServerRecommendation(data);
+      } else {
+        setServerRecommendation(null);
+      }
+    } catch {
+      // Fall back to local recommendation silently
+      setServerRecommendation(null);
+    } finally {
+      setIsLoadingRecommendation(false);
+    }
+  }, []);
 
   const localProjectRepo = useMemo(() => new LocalProjectRepository(), []);
   const localTaskRepo = useMemo(() => new LocalTaskRepository(), []);
@@ -198,6 +199,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       setProjects(loadedProjects);
       setTasks(loadedTasks);
+      fetchRecommendation();
     } catch (err: any) {
       console.error('[AppContext] Failed to load persisted state:', err);
       setLoadError(err?.message || "Couldn't load your projects. Please try again.");
@@ -318,7 +320,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return t;
       })
     );
-    taskService.toggle(taskId).then(() => triggerSync()).catch((err) => {
+    taskService.toggle(taskId).then(() => {
+      triggerSync();
+      fetchRecommendation();
+    }).catch((err) => {
       console.warn('[AppContext] Failed to toggle task in repo', err);
     });
   };
@@ -365,7 +370,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         estimateMinutes: estMin || 30,
       },
       projects
-    ).then(() => triggerSync()).catch((err) => {
+    ).then(() => {
+      triggerSync();
+      fetchRecommendation();
+    }).catch((err) => {
       console.warn('[AppContext] Failed to persist task creation', err);
     });
   };
@@ -391,7 +399,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const startFocus = (taskId?: string) => {
     const target = tasks.find((t) => t.id === taskId) || tasks[0];
-    const estMin = target?.estimatedMinutes || 28;
+    const estMin = target?.estimatedMinutes || target?.estimateMinutes || 28;
     setFocusSession({
       taskId: target.id,
       taskTitle: target.title,
@@ -404,6 +412,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       estimatedMinutes: estMin,
       startedAt: Date.now(),
       pausedTotalSeconds: 0,
+    });
+
+    apiClient.post<{ id?: string }>('/focus-sessions', {
+      taskId: target.id,
+      plannedMinutes: estMin,
+    }).then((res) => {
+      if (res?.id) {
+        setFocusSession((prev) => (prev ? { ...prev, id: res.id } : prev));
+      }
+    }).catch((err) => {
+      console.log('[Focus] Backend focus session start recorded offline:', err);
     });
   };
 
@@ -434,7 +453,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!prev) return null;
       const actualMinutes = computeActualMinutes(prev);
       console.log(`[Focus] Finished session for ${prev.taskTitle}: ${actualMinutes} actual minutes`);
+
+      const sessionId = prev.id || `session-${prev.startedAt}`;
+      apiClient.patch(`/focus-sessions/${sessionId}`, {
+        endedAt: new Date().toISOString(),
+        actualMinutes,
+        status: 'finished',
+      }).catch((err) => {
+        console.log('[Focus] Backend focus session end patch recorded offline:', err);
+      });
+
       if (prev.taskId) {
+        taskService.complete(prev.taskId).then(() => {
+          triggerSync();
+          fetchRecommendation();
+        }).catch(() => {});
+
+        if (recommendation?.taskId === prev.taskId) {
+          apiClient.post(`/recommendations/${recommendation.id || recommendation.taskId}/outcome`, {
+            eventType: 'completed',
+          }).catch(() => {});
+        }
+
         setTasks((currentTasks) =>
           currentTasks.map((t) => {
             if (t.id === prev.taskId && !t.completed) {
@@ -478,6 +518,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         projects,
         tasks,
         recommendation,
+        isLoadingRecommendation,
+        refreshRecommendation: fetchRecommendation,
         focusSession,
         isLoadingState,
         loadError,

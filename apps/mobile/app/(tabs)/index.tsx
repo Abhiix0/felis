@@ -14,13 +14,13 @@ import { useAuth } from '../../src/context/AuthContext';
 import { CatIllustration } from '../../src/components/CatIllustration';
 import { SignalRail } from '../../src/components/SignalRail';
 import { colors, spacing, radius, typography } from '../../src/theme/tokens';
-import { Card, SectionLabel, PrimaryButton, EmptyState } from '../../src/components/ui';
+import { Card, SectionLabel, PrimaryButton, EmptyState, LoadingState } from '../../src/components/ui';
 import { getTodayLabel } from '../../src/utils/dateUtils';
 import { getTodayTasks, getActiveTodayTasks } from '../../src/domain/taskSelectors';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { recommendation, tasks, toggleTask, startFocus, syncStatus } = useApp();
+  const { recommendation, tasks, toggleTask, startFocus, syncStatus, isLoadingRecommendation } = useApp();
   const { user } = useAuth();
 
   const rawTodayTasks = getTodayTasks(tasks);
@@ -74,7 +74,13 @@ export default function HomeScreen() {
         </View>
 
         {/* Recommendation Card */}
-        {recommendation ? (
+        {isLoadingRecommendation ? (
+          <Card variant="raised" style={styles.cardContainer}>
+            <View style={{ paddingVertical: spacing[24], alignItems: 'center', justifyContent: 'center' }}>
+              <LoadingState message="Recalculating next action..." />
+            </View>
+          </Card>
+        ) : recommendation ? (
           <Card variant="raised" style={styles.cardContainer}>
             <SignalRail color={colors.accent} width={spacing[4]} />
 
