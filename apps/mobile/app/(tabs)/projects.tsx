@@ -24,7 +24,7 @@ export default function ProjectsScreen() {
 
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    p.description.toLowerCase().includes(searchText.toLowerCase())
+    (p.description || '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   const getIcon = (type: string) => {

@@ -1,2 +1,5 @@
-// @felis/design-tokens — colors, spacing, typography (populated in Phase 3)
-export {};
+export { colors, type ColorKey } from './colors';
+export { spacing } from './spacing';
+export { typography } from './typography';
+export { radius } from './radius';
+export { semanticColors } from './semantic';

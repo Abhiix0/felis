@@ -339,7 +339,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setFocusSession({
       taskId: target.id,
       taskTitle: target.title,
-      projectName: target.projectName,
+      projectName: target.projectName || 'General',
       totalSeconds: estMin * 60,
       remainingSeconds: estMin * 60,
       isRunning: true,

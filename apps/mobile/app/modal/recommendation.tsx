@@ -79,7 +79,7 @@ export default function RecommendationModal() {
           <Text style={styles.recTitle}>{recommendation.title}</Text>
 
           <View style={styles.bulletsList}>
-            {recommendation.reasonBullets.map((b, i) => (
+            {(recommendation.reasonBullets || []).map((b, i) => (
               <View key={i} style={styles.bulletRow}>
                 <Text style={styles.bulletDot}>·</Text>
                 <Text style={styles.bulletText}>{b}</Text>

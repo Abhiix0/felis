@@ -53,7 +53,7 @@ export default function ProjectDetailScreen() {
 
           {/* Tech tags */}
           <View style={styles.tagRow}>
-            {project.stack.map((item, idx) => (
+            {(project.stack || []).map((item, idx) => (
               <View key={idx} style={styles.tag}>
                 <Text style={styles.tagText}>{item}</Text>
               </View>

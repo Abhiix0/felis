@@ -81,10 +81,10 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.metaText,
-                      { color: recommendation.priority === 'high' ? colors.accent : colors.textSecondary },
+                      { color: (recommendation.priority || 'medium') === 'high' ? colors.accent : colors.textSecondary },
                     ]}
                   >
-                    {recommendation.priority.charAt(0).toUpperCase() + recommendation.priority.slice(1)} priority
+                    {(recommendation.priority || 'medium').charAt(0).toUpperCase() + (recommendation.priority || 'medium').slice(1)} priority
                   </Text>
                 </View>
               </View>
